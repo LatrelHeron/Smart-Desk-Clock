@@ -1,4 +1,4 @@
-#include "sen0546.h"
+#include "temp_sensor.h"
 
 #include <array>
 #include <cerrno>

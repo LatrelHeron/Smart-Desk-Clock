@@ -5,7 +5,7 @@
 #include <cstdio>
 #include <thread>
 
-#include "temp_sensor.h"
+#include ".h"
 
 int main()
 {
