@@ -18,7 +18,8 @@
 
 #include <cstdio>
 
-int main() {
+int main()
+{
     stdio_init_all();
     sleep_ms(2000);
 
@@ -45,9 +46,11 @@ int main() {
 
     printf("Starting WeAct 3.7-inch e-paper test...\n");
 
-    if (!display.init()) {
+    if (!display.init())
+    {
         printf("E-paper init failed or BUSY timed out.\n");
-        while (true) {
+        while (true)
+        {
             sleep_ms(1000);
         }
     }
@@ -66,9 +69,12 @@ int main() {
     epaper::draw_text(image, 24, 275, "DISPLAY", 2);
     epaper::draw_text(image, 24, 300, "WORKING", 2);
 
-    if (display.display(image)) {
+    if (display.display(image))
+    {
         printf("Display refresh completed.\n");
-    } else {
+    }
+    else
+    {
         printf("Display refresh failed or BUSY timed out.\n");
     }
 
@@ -76,7 +82,8 @@ int main() {
     display.sleep();
     printf("Display put into deep sleep.\n");
 
-    while (true) {
+    while (true)
+    {
         sleep_ms(1000);
     }
 }

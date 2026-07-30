@@ -1,69 +1,54 @@
 #include <opencv2/opencv.hpp>
 #include <sys/time.h>
 
+#include <chrono>
+#include <cstdio>
+#include <thread>
+
+#include "temp_sensor.h"
+
 int main()
 {
-    // Open the video camera.
-    std::string pipeline = "libcamerasrc"
-        " ! video/x-raw, width=800, height=600" // camera needs to capture at a higher resolution
-        " ! videoconvert"
-        " ! videoscale"
-        " ! video/x-raw, width=400, height=300" // can downsample the image after capturing
-        " ! videoflip method=rotate-180" // remove this line if the image is upside-down
-        " ! appsink drop=true max_buffers=2";
-    cv::VideoCapture cap(pipeline, cv::CAP_GSTREAMER);
-    if(!cap.isOpened()) {
-        printf("Could not open camera.\n");
+    Sen0546 temperature_sensor;
+
+    if (!temperature_sensor.initialise()) {
+        std::fprintf(
+            stderr,
+            "SEN0546 initialisation failed: %s\n",
+            temperature_sensor.last_error().c_str()
+        );
+
         return 1;
     }
 
-    // Create the OpenCV window
-    cv::namedWindow("Camera", cv::WINDOW_AUTOSIZE);
-    cv::Mat frame;
+    std::printf(
+        "SEN0546 found at I2C address 0x%02X\n",
+        temperature_sensor.address()
+    );
 
-    // Measure the frame rate - initialise variables
-    int frame_id = 0;
-    timeval start, end;
-    gettimeofday(&start, NULL);
+    while (true) {
+        Sen0546Reading reading{};
 
-    for(;;) {
-        if (!cap.read(frame)) {
-            printf("Could not read a frame.\n");
-            break;
+        if (temperature_sensor.read(reading)) {
+            std::printf(
+                "Temperature: %.2f C | "
+                "Humidity: %.2f %%RH\n",
+                reading.temperature_c,
+                reading.humidity_percent
+            );
+        }
+        else {
+            std::fprintf(
+                stderr,
+                "SEN0546 reading failed: %s\n",
+                temperature_sensor.last_error().c_str()
+            );
         }
 
-        // Convert the frame to HSV
-        cv::Mat hsv;
-        cv::cvtColor(frame, hsv, cv::COLOR_BGR2HSV);
-
-
-        // Threshold the HSV image
-        cv::Mat threshold;
-        cv::inRange(
-            hsv,
-            cv::Scalar(0, 100, 100),
-            cv::Scalar(10, 255, 255),
-            threshold
+        std::this_thread::sleep_for(
+            std::chrono::seconds(2)
         );
-
-        //show frame
-        cv::imshow("Camera", frame);
-        cv::imshow("Threshold", threshold);
-        cv::waitKey(1);
-
-        // Measure the frame rate
-        frame_id++;
-        if (frame_id >= 30) {
-            gettimeofday(&end, NULL);
-            double diff = end.tv_sec - start.tv_sec + (end.tv_usec - start.tv_usec)/1000000.0;
-            printf("30 frames in %f seconds = %f FPS\n", diff, 30/diff);
-            frame_id = 0;
-            gettimeofday(&start, NULL);
-        }
     }
 
-    // Free the camera 
-    cap.release();
     return 0;
 }
-
