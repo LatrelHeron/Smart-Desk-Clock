@@ -41,13 +41,13 @@ if(CrossCompiling)
     # Pull in Raspberry Pi Pico SDK (must be before project)
     include(pico_sdk_import.cmake)
 
-    project(cc3501-labs C CXX ASM)
+    project(cc3501-smart_desk_clock C CXX ASM)
     
     # Initialise the Raspberry Pi Pico SDK
     pico_sdk_init()
 
-    add_executable(labs)
-    target_sources(labs 
+    add_executable(smart_desk_clock)
+    target_sources(smart_desk_clock 
         PUBLIC
         src/main.cpp
         src/drivers/logging/logging.cpp
@@ -55,24 +55,25 @@ if(CrossCompiling)
         src/drivers/LIS3DH/lis3dh.cpp
         src/drivers/microphone/microphone.cpp
         src/drivers/epaper/epaper_3in7.cpp
+        src/drivers/SEN0546/temp_sensor.cpp
     )
-    target_include_directories(labs
+    target_include_directories(smart_desk_clock
         PUBLIC 
         src/
     )
 
-    pico_set_program_name(labs "cc3501-labs")
-    pico_set_program_version(labs "0.2")
+    pico_set_program_name(smart_desk_clock "cc3501-smart_desk_clock")
+    pico_set_program_version(smart_desk_clock "0.2")
 
     # select UART for standard IO
-    pico_enable_stdio_uart(labs 1)
-    pico_enable_stdio_usb(labs 0)
+    pico_enable_stdio_uart(smart_desk_clock 1)
+    pico_enable_stdio_usb(smart_desk_clock 0)
 
     # compile the PIO file
-    pico_generate_pio_header(labs ${CMAKE_CURRENT_LIST_DIR}/src/drivers/WS2812/WS2812.pio)
+    pico_generate_pio_header(smart_desk_clock ${CMAKE_CURRENT_LIST_DIR}/src/drivers/WS2812/WS2812.pio)
 
     # Add the standard library to the build
-    target_link_libraries(labs
+    target_link_libraries(smart_desk_clock
         pico_stdlib
         hardware_spi
         hardware_i2c
@@ -86,7 +87,7 @@ if(CrossCompiling)
         hardware_adc
     )
 
-    pico_add_extra_outputs(labs)
+    pico_add_extra_outputs(smart_desk_clock)
 
 else()
 
@@ -94,10 +95,10 @@ else()
     set(CMAKE_CXX_STANDARD 20)
 
     # We are building natively, so create the test harness instead
-    project(cc3501-labs CXX)
+    project(cc3501-smart_desk_clock CXX)
 
-    add_executable(labs)
-    target_sources(labs 
+    add_executable(smart_desk_clock)
+    target_sources(smart_desk_clock 
         PUBLIC
         src/main.cpp
         src/drivers/logging/logging.cpp
@@ -111,20 +112,20 @@ else()
         tests/mocks/hardware/pio.cpp
         tests/mocks/ws2812.cpp
     )
-    target_include_directories(labs
+    target_include_directories(smart_desk_clock
         PUBLIC 
         src/
         tests/
         tests/mocks/
     )
-    target_compile_definitions(labs 
+    target_compile_definitions(smart_desk_clock 
         PUBLIC
         TEST_HARNESS=1
     )
 
 endif()
 
-target_compile_definitions(labs 
+target_compile_definitions(smart_desk_clock 
     PUBLIC
     LOG_DRIVER_STYLE=${LogDriverImplementation}
 )
