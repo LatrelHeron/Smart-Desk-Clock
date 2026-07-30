@@ -5,16 +5,16 @@
 void leds_init();
 
 void leds_set(int led,
-uint8_t red,
-uint8_t green,
-uint8_t blue);
+              uint8_t red,
+              uint8_t green,
+              uint8_t blue);
 
 void leds_show();
 
 void leds_clear();
 
 void leds_set_range(int start,
-int end,
-uint8_t red,
-uint8_t green,
-uint8_t blue);
+                    int end,
+                    uint8_t red,
+                    uint8_t green,
+                    uint8_t blue);

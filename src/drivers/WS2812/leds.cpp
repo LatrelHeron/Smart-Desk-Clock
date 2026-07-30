@@ -24,7 +24,8 @@ void leds_set(int led,
               uint8_t green,
               uint8_t blue)
 {
-    if (led < 0 || led >= LED_COUNT) {
+    if (led < 0 || led >= LED_COUNT)
+    {
         return;
     }
 
@@ -35,34 +36,39 @@ void leds_set(int led,
 
 void leds_show()
 {
-    for (int i = 0; i < LED_COUNT; i++) {
+    for (int i = 0; i < LED_COUNT; i++)
+    {
         pio_sm_put_blocking(led_pio, led_sm, led_data[i]);
     }
 }
 
 void leds_clear()
 {
-    for (int i = 0; i < LED_COUNT; i++) {
+    for (int i = 0; i < LED_COUNT; i++)
+    {
         led_data[i] = 0;
     }
 }
 
 void leds_set_range(int start,
-                int end, 
-                uint8_t red,
-                uint8_t green,
-                uint8_t blue)
+                    int end,
+                    uint8_t red,
+                    uint8_t green,
+                    uint8_t blue)
 {
     // Safety checks
-    if (start < 0) {
+    if (start < 0)
+    {
         start = 0;
     }
 
-    if (end >= LED_COUNT) {
+    if (end >= LED_COUNT)
+    {
         end = LED_COUNT - 1;
     }
 
-    for (int i = start; i <= end; i++) {
+    for (int i = start; i <= end; i++)
+    {
         leds_set(i, red, green, blue);
     }
 }
