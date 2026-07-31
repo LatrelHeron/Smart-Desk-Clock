@@ -1,258 +1,360 @@
 #include "temp_sensor.h"
 
-#include <array>
-#include <cerrno>
-#include <chrono>
-#include <cstring>
-#include <fcntl.h>
-#include <sstream>
-#include <thread>
-#include <unistd.h>
+#include <cstddef>
+#include <cstdio>
 
-#include <linux/i2c-dev.h>
-#include <sys/ioctl.h>
+#include "pico/stdlib.h"
 
-namespace
-{
-    // Possible SEN0546 / CHT8305 addresses.
-    constexpr std::array<uint8_t, 4> POSSIBLE_ADDRESSES = {
-        0x40,
-        0x44,
-        0x48,
-        0x4C};
-
-    // CHT8305 measurement register.
-    constexpr uint8_t MEASUREMENT_REGISTER = 0x00;
-
-    // Manufacturer ID register used to test whether the device responds.
-    constexpr uint8_t MANUFACTURER_ID_REGISTER = 0xFE;
-
-    constexpr auto CONVERSION_DELAY =
-        std::chrono::milliseconds(20);
-}
-
-Sen0546::Sen0546(const std::string &i2c_device)
-    : i2c_device_(i2c_device),
-      i2c_file_(-1),
-      sensor_address_(0),
-      initialised_(false)
+SEN0546::SEN0546(i2c_inst_t *i2c_port)
+    : i2c_port_(i2c_port),
+      sensor_type_(SensorType::Unknown),
+      address_(0),
+      connected_(false)
 {
 }
 
-Sen0546::~Sen0546()
+bool SEN0546::initialise()
 {
-    if (i2c_file_ >= 0)
-    {
-        close(i2c_file_);
-        i2c_file_ = -1;
-    }
-}
+    connected_ = false;
+    sensor_type_ = SensorType::Unknown;
+    address_ = 0;
 
-void Sen0546::set_error(const std::string &message)
-{
-    last_error_ = message;
-}
-
-bool Sen0546::select_address(uint8_t address)
-{
-    if (i2c_file_ < 0)
+    // Try the older CHT8305 version first, it normally responds at address 0x40.
+    if (probe_address(CHT8305_ADDRESS))
     {
-        set_error("I2C device is not open.");
-        return false;
+        sensor_type_ = SensorType::CHT8305;
+        address_ = CHT8305_ADDRESS;
+        connected_ = true;
+
+        printf(
+            "SEN0546 detected: CHT8305 at address 0x%02X\n",
+            address_);
+
+        return true;
     }
 
-    if (ioctl(i2c_file_, I2C_SLAVE, address) < 0)
+    // Try the newer CHT832X version, it normally responds at address 0x44.
+    if (probe_address(CHT832X_ADDRESS))
     {
-        std::ostringstream message;
+        sensor_type_ = SensorType::CHT832X;
+        address_ = CHT832X_ADDRESS;
+        connected_ = true;
 
-        message
-            << "Could not select I2C address 0x"
-            << std::hex
-            << static_cast<int>(address)
-            << ": "
-            << std::strerror(errno);
+        printf(
+            "SEN0546 detected: CHT832X at address 0x%02X\n",
+            address_);
 
-        set_error(message.str());
-        return false;
+        return true;
     }
 
-    return true;
-}
-
-bool Sen0546::device_responds(uint8_t address)
-{
-    if (!select_address(address))
-    {
-        return false;
-    }
-
-    uint8_t register_address = MANUFACTURER_ID_REGISTER;
-
-    ssize_t written = write(
-        i2c_file_,
-        &register_address,
-        sizeof(register_address));
-
-    return written == static_cast<ssize_t>(
-                          sizeof(register_address));
-}
-
-bool Sen0546::initialise()
-{
-    initialised_ = false;
-    sensor_address_ = 0;
-    last_error_.clear();
-
-    if (i2c_file_ >= 0)
-    {
-        close(i2c_file_);
-        i2c_file_ = -1;
-    }
-
-    i2c_file_ = open(
-        i2c_device_.c_str(),
-        O_RDWR);
-
-    if (i2c_file_ < 0)
-    {
-        set_error(
-            "Could not open " +
-            i2c_device_ +
-            ": " +
-            std::strerror(errno));
-
-        return false;
-    }
-
-    for (uint8_t address : POSSIBLE_ADDRESSES)
-    {
-        if (device_responds(address))
-        {
-            sensor_address_ = address;
-            initialised_ = true;
-            last_error_.clear();
-
-            return true;
-        }
-    }
-
-    set_error(
-        "SEN0546 was not detected at addresses "
-        "0x40, 0x44, 0x48 or 0x4C.");
-
-    close(i2c_file_);
-    i2c_file_ = -1;
+    printf(
+        "ERROR: SEN0546 not detected at 0x40 or 0x44\n");
 
     return false;
 }
 
-bool Sen0546::read(Sen0546Reading &reading)
+bool SEN0546::probe_address(uint8_t address)
 {
-    if (!initialised_)
-    {
-        set_error(
-            "SEN0546 has not been initialised.");
+    // An empty write checks whether a device acknowledges the supplied I2C address
+    const int result = i2c_write_blocking(
+        i2c_port_,
+        address,
+        nullptr,
+        0,
+        false);
 
-        return false;
+    return result >= 0;
+}
+
+EnvironmentData SEN0546::read()
+{
+    if (!connected_)
+    {
+        printf(
+            "ERROR: SEN0546 read attempted before initialisation\n");
+
+        return {};
     }
 
-    if (!select_address(sensor_address_))
+    switch (sensor_type_)
     {
-        return false;
+    case SensorType::CHT8305:
+        return read_cht8305();
+
+    case SensorType::CHT832X:
+        return read_cht832x();
+
+    case SensorType::Unknown:
+    default:
+        return {};
     }
+}
 
-    uint8_t register_address = MEASUREMENT_REGISTER;
+EnvironmentData SEN0546::read_cht8305()
+{
+    EnvironmentData result{};
 
-    ssize_t written = write(
-        i2c_file_,
+    /*
+    CHT8305 register 0x00 contains:
+    - two bytes of temperature
+    - two bytes of humidity
+    */
+    const uint8_t register_address = 0x00;
+
+    const int write_result = i2c_write_blocking(
+        i2c_port_,
+        address_,
         &register_address,
-        sizeof(register_address));
+        1,
+        true);
 
-    if (written != static_cast<ssize_t>(
-                       sizeof(register_address)))
+    if (write_result != 1)
     {
-        set_error(
-            "Failed to start SEN0546 measurement: " +
-            std::string(std::strerror(errno)));
+        printf(
+            "ERROR: CHT8305 register selection failed: %d\n",
+            write_result);
 
-        return false;
+        return result;
     }
 
-    std::this_thread::sleep_for(CONVERSION_DELAY);
+    // DFRobot's reference example allows time before reading.
+    sleep_ms(20);
 
-    uint8_t data[4] = {};
+    uint8_t buffer[4] = {0};
 
-    ssize_t received = ::read(
-        i2c_file_,
-        data,
-        sizeof(data));
+    const int read_result = i2c_read_blocking(
+        i2c_port_,
+        address_,
+        buffer,
+        sizeof(buffer),
+        false);
 
-    if (received != static_cast<ssize_t>(
-                        sizeof(data)))
+    if (read_result != static_cast<int>(sizeof(buffer)))
     {
-        set_error(
-            "Failed to read four bytes from SEN0546: " +
-            std::string(std::strerror(errno)));
+        printf(
+            "ERROR: CHT8305 read failed: expected 4 bytes, got %d\n",
+            read_result);
 
-        return false;
+        return result;
     }
 
-    uint16_t raw_temperature =
-        (static_cast<uint16_t>(data[0]) << 8) |
-        static_cast<uint16_t>(data[1]);
+    const uint16_t raw_temperature =
+        static_cast<uint16_t>(
+            (static_cast<uint16_t>(buffer[0]) << 8) |
+            buffer[1]);
 
-    uint16_t raw_humidity =
-        (static_cast<uint16_t>(data[2]) << 8) |
-        static_cast<uint16_t>(data[3]);
+    const uint16_t raw_humidity =
+        static_cast<uint16_t>(
+            (static_cast<uint16_t>(buffer[2]) << 8) |
+            buffer[3]);
 
-    reading.temperature_c =
-        (165.0f *
-         static_cast<float>(raw_temperature) /
+    // CHT8305 conversion formulas supplied by DFRobot.
+    result.temperature_c =
+        (static_cast<float>(raw_temperature) * 165.0f /
          65535.0f) -
         40.0f;
 
-    reading.humidity_percent =
-        100.0f *
-        static_cast<float>(raw_humidity) /
+    result.humidity_percent =
+        static_cast<float>(raw_humidity) * 100.0f /
         65535.0f;
 
-    // Basic validation against physically possible values.
-    if (
-        reading.temperature_c < -40.0f ||
-        reading.temperature_c > 125.0f)
-    {
-        set_error(
-            "Temperature reading was outside the sensor range.");
+    result.valid = readings_are_reasonable(
+        result.temperature_c,
+        result.humidity_percent);
 
-        return false;
+    if (!result.valid)
+    {
+        printf(
+            "ERROR: CHT8305 returned unreasonable values\n");
     }
 
-    if (
-        reading.humidity_percent < 0.0f ||
-        reading.humidity_percent > 100.0f)
-    {
-        set_error(
-            "Humidity reading was outside the sensor range.");
+    return result;
+}
 
-        return false;
+EnvironmentData SEN0546::read_cht832x()
+{
+    EnvironmentData result{};
+
+    // CHT832X single-shot measurement command.
+    const uint8_t command[2] = {
+        0x24,
+        0x00};
+
+    const int write_result = i2c_write_blocking(
+        i2c_port_,
+        address_,
+        command,
+        sizeof(command),
+        false);
+
+    if (write_result != static_cast<int>(sizeof(command)))
+    {
+        printf(
+            "ERROR: CHT832X measurement command failed: %d\n",
+            write_result);
+
+        return result;
     }
 
-    last_error_.clear();
+    // Give the sensor enough time to complete the conversion.
+    sleep_ms(60);
 
-    return true;
+    uint8_t buffer[6] = {0};
+
+    const int read_result = i2c_read_blocking(
+        i2c_port_,
+        address_,
+        buffer,
+        sizeof(buffer),
+        false);
+
+    if (read_result != static_cast<int>(sizeof(buffer)))
+    {
+        printf(
+            "ERROR: CHT832X read failed: expected 6 bytes, got %d\n",
+            read_result);
+
+        return result;
+    }
+
+    /*
+    CHT832X data format:
+    buffer[0] temperature MSB
+    buffer[1] temperature LSB
+    buffer[2] temperature CRC
+    buffer[3] humidity MSB
+    buffer[4] humidity LSB
+    buffer[5] humidity CRC
+    */
+
+    const uint8_t expected_temperature_crc =
+        calculate_crc8(buffer, 2);
+
+    const uint8_t expected_humidity_crc =
+        calculate_crc8(&buffer[3], 2);
+
+    if (buffer[2] != expected_temperature_crc)
+    {
+        printf(
+            "ERROR: CHT832X temperature CRC mismatch\n");
+
+        return result;
+    }
+
+    if (buffer[5] != expected_humidity_crc)
+    {
+        printf(
+            "ERROR: CHT832X humidity CRC mismatch\n");
+
+        return result;
+    }
+
+    const uint16_t raw_temperature =
+        static_cast<uint16_t>(
+            (static_cast<uint16_t>(buffer[0]) << 8) |
+            buffer[1]);
+
+    const uint16_t raw_humidity =
+        static_cast<uint16_t>(
+            (static_cast<uint16_t>(buffer[3]) << 8) |
+            buffer[4]);
+
+    // CHT832X conversion formulas supplied by DFRobot.
+    result.temperature_c =
+        -45.0f +
+        175.0f *
+            (static_cast<float>(raw_temperature) / 65535.0f);
+
+    result.humidity_percent =
+        100.0f *
+        (static_cast<float>(raw_humidity) / 65535.0f);
+
+    result.valid = readings_are_reasonable(
+        result.temperature_c,
+        result.humidity_percent);
+
+    if (!result.valid)
+    {
+        printf(
+            "ERROR: CHT832X returned unreasonable values\n");
+    }
+
+    return result;
 }
 
-bool Sen0546::is_initialised() const
+bool SEN0546::is_connected() const
 {
-    return initialised_;
+    return connected_;
 }
 
-uint8_t Sen0546::address() const
+const char *SEN0546::sensor_name() const
 {
-    return sensor_address_;
+    switch (sensor_type_)
+    {
+    case SensorType::CHT8305:
+        return "CHT8305";
+
+    case SensorType::CHT832X:
+        return "CHT832X";
+
+    case SensorType::Unknown:
+    default:
+        return "Unknown";
+    }
 }
 
-const std::string &Sen0546::last_error() const
+bool SEN0546::readings_are_reasonable(
+    float temperature_c,
+    float humidity_percent)
 {
-    return last_error_;
+    /*
+    SEN0546's documented operating ranges are:
+    - Temperature: -40 C to 125 C
+    - Humidity: 0% to 100% RH
+    */
+    const bool valid_temperature =
+        temperature_c >= -40.0f &&
+        temperature_c <= 125.0f;
+
+    const bool valid_humidity =
+        humidity_percent >= 0.0f &&
+        humidity_percent <= 100.0f;
+
+    return valid_temperature && valid_humidity;
+}
+
+uint8_t SEN0546::calculate_crc8(
+    const uint8_t *data,
+    std::size_t length)
+{
+    /*
+    Common CRC-8 calculation used by this style of temperature/humidity sensor.
+    Polynomial: 0x31
+    Initial value: 0xFF
+    */
+    uint8_t crc = 0xFF;
+
+    for (std::size_t byte_index = 0;
+         byte_index < length;
+         ++byte_index)
+    {
+        crc ^= data[byte_index];
+
+        for (int bit = 0; bit < 8; ++bit)
+        {
+            if ((crc & 0x80U) != 0U)
+            {
+                crc =
+                    static_cast<uint8_t>(
+                        (crc << 1U) ^ 0x31U);
+            }
+            else
+            {
+                crc =
+                    static_cast<uint8_t>(crc << 1U);
+            }
+        }
+    }
+
+    return crc;
 }
