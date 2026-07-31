@@ -72,3 +72,27 @@ void leds_set_range(int start,
         leds_set(i, red, green, blue);
     }
 }
+
+void leds_set_mode(LedMode mode)
+{
+    switch (mode)
+    {
+        case LedMode::OFF:
+            leds_clear();
+            break;
+
+        case LedMode::BOOTING:
+            leds_set(0, 0, 0, 30);      // Blue
+            break;
+
+        case LedMode::OK:
+            leds_set(0, 0, 30, 0);      // Green
+            break;
+
+        case LedMode::SENSOR_ERROR:
+            leds_set(0, 30, 0, 0);      // Red
+            break;
+    }
+
+    leds_show();
+}

@@ -18,3 +18,13 @@ void leds_set_range(int start,
                     uint8_t red,
                     uint8_t green,
                     uint8_t blue);
+
+enum class LedMode
+{
+    OFF,
+    BOOTING,
+    OK,
+    SENSOR_ERROR
+};
+
+void leds_set_mode(LedMode mode);
