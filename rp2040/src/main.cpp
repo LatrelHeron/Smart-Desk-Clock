@@ -21,6 +21,31 @@ int main()
     stdio_init_all();
     sleep_ms(2000);
 
+    leds_init();
+
+    while (true)
+    {
+        // Red
+        leds_set(0, 30, 0, 0);
+        leds_show();
+        sleep_ms(1000);
+
+        // Green
+        leds_set(0, 0, 30, 0);
+        leds_show();
+        sleep_ms(1000);
+
+        // Blue
+        leds_set(0, 0, 0, 30);
+        leds_show();
+        sleep_ms(1000);
+
+        // Off
+        leds_clear();
+        leds_show();
+        sleep_ms(1000);
+    }
+
     printf("\n");
     printf("Smart Desk Clock - SEN0546 test\n");
     printf("--------------------------------\n");
