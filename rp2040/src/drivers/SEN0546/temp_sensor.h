@@ -1,50 +1,60 @@
-#ifndef SEN0546_H
-#define SEN0546_H
+#pragma once
 
 #include <cstdint>
-#include <string>
 
-struct Sen0546Reading
+#include "hardware/i2c.h"
+
+// Return values for application
+struct EnvironmentData
 {
-    float temperature_c;
-    float humidity_percent;
+    float temperature_c = 0.0f;
+    float humidity_percent = 0.0f;
+    bool valid = false;
 };
 
-class Sen0546
+class SEN0546
 {
 public:
-    // Default Raspberry Pi I2C bus is /dev/i2c-1.
-    explicit Sen0546(
-        const std::string &i2c_device = "/dev/i2c-1");
+    // Construct sensor driver
+    explicit SEN0546(i2c_inst_t *i2c_port);
 
-    ~Sen0546();
-
-    // Prevent accidental copying of the file descriptor.
-    Sen0546(const Sen0546 &) = delete;
-    Sen0546 &operator=(const Sen0546 &) = delete;
-
-    // Searches the supported SEN0546 addresses and opens the sensor.
+    // Detect and initialise sensor
     bool initialise();
 
-    // Reads temperature and relative humidity.
-    bool read(Sen0546Reading &reading);
+    // Read temp and humidity
+    EnvironmentData read();
 
-    bool is_initialised() const;
+    // Indicates if initialisation was a success
+    bool is_connected() const;
 
-    uint8_t address() const;
-
-    const std::string &last_error() const;
+    // Return detected sensor name
+    const char *sensor_name() const;
 
 private:
-    bool select_address(uint8_t address);
-    bool device_responds(uint8_t address);
-    void set_error(const std::string &message);
+    enum class SensorType
+    {
+        Unknown,
+        CHT8305,
+        CHT832X
+    };
 
-    std::string i2c_device_;
-    int i2c_file_;
-    uint8_t sensor_address_;
-    bool initialised_;
-    std::string last_error_;
+    static constexpr uint8_t CHT8305_ADDRESS = 0x40;
+    static constexpr uint8_t CHT832X_ADDRESS = 0x44;
+
+    i2c_inst_t *i2c_port_;
+    SensorType sensor_type_;
+    uint8_t address_;
+    bool connected_;
+
+    bool probe_address(uint8_t address);
+    EnvironmentData read_cht8305();
+    EnvironmentData read_cht832x();
+
+    static bool readings_are_reasonable(
+        float temperature_c,
+        float humidity_percent);
+
+    static uint8_t calculate_crc8(
+        const uint8_t *data,
+        std::size_t length);
 };
-
-#endif
