@@ -4,7 +4,7 @@
         {
             "name": "Pico Debug (CMSIS-DAP)",
             "cwd": "${workspaceFolder}",
-            "executable": "${workspaceFolder}/build/labs.elf",
+            "executable": "${workspaceFolder}/build/smart_desk_clock.elf",
             "request": "launch",
             "type": "cortex-debug",
             "servertype": "openocd",
