@@ -22,8 +22,7 @@ int main()
     sleep_ms(2000);
 
     leds_init();
-
-    
+    leds_set_mode(LedMode::BOOTING);
 
     printf("\n");
     printf("Smart Desk Clock - SEN0546 test\n");
@@ -32,21 +31,12 @@ int main()
     i2c_init(
         board::I2C_PORT,
         board::I2C_BAUD_RATE);
-
     gpio_set_function(
         board::I2C_SDA_PIN,
         GPIO_FUNC_I2C);
-
     gpio_set_function(
         board::I2C_SCL_PIN,
         GPIO_FUNC_I2C);
-
-    /*
-    These enable the RP2040's weak internal pull-ups.
-
-    The SEN0546 module reportedly already has external
-    4.7 kOhm pull-ups, so these are not the primary pull-ups.
-    */
     gpio_pull_up(board::I2C_SDA_PIN);
     gpio_pull_up(board::I2C_SCL_PIN);
 
@@ -55,16 +45,16 @@ int main()
     if (!sensor.initialise())
     {
         printf("Sensor initialisation failed\n");
-
-        while (true)
-        {
-            sleep_ms(1000);
-        }
+        leds_set_mode(LedMode::SENSOR_ERROR);
     }
+    else
+    {
+        printf(
+            "Sensor ready: %s\n",
+            sensor.sensor_name());
 
-    printf(
-        "Sensor ready: %s\n",
-        sensor.sensor_name());
+        leds_set_mode(LedMode::OK);
+    }
 
     while (true)
     {
@@ -77,10 +67,13 @@ int main()
                 "Temperature: %.2f C | Humidity: %.2f %%RH\n",
                 environment.temperature_c,
                 environment.humidity_percent);
+
+            leds_set_mode(LedMode::OK);
         }
         else
         {
             printf("Sensor reading failed\n");
+            leds_set_mode(LedMode::SENSOR_ERROR);
         }
 
         sleep_ms(1000);
