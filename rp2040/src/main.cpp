@@ -16,7 +16,8 @@
 #include <cstdio>
 #include <cstdint>
 
-int main() {
+int main()
+{
     stdio_init_all();
     sleep_ms(2000);
 
@@ -83,9 +84,6 @@ int main() {
         sleep_ms(1000);
     }
 }
-
-
-
 
 /*
 int main()
