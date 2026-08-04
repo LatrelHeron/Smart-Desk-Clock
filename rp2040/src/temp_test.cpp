@@ -4,7 +4,7 @@
 #include "hardware/gpio.h"
 #include "hardware/pio.h"
 
-#include "drivers/WS2812/WS2812.pio" // This header file gets produced during compilation from the WS2812.pio file
+#include "WS2812.pio.h" // This header file gets produced during compilation from the WS2812.pio file
 #include "drivers/logging/logging.h"
 #include "drivers/WS2812/leds.h"
 #include "drivers/LIS3DH/lis3dh.h"
@@ -16,7 +16,7 @@
 #include <cstdio>
 #include <cstdint>
 
-int main()
+int temp_test()
 {
     stdio_init_all();
     sleep_ms(2000);

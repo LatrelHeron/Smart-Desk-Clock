@@ -4,7 +4,7 @@
 #include "hardware/gpio.h"
 #include "hardware/pio.h"
 
-#include "drivers/WS2812/WS2812.pio" // This header file gets produced during compilation from the WS2812.pio file
+#include "WS2812.pio.h" //This header file gets produced during compilation from the WS2812.pio file
 #include "drivers/logging/logging.h"
 #include "drivers/WS2812/leds.h"
 #include "drivers/LIS3DH/lis3dh.h"
@@ -23,7 +23,6 @@ int main() {
     leds_init();
     leds_clear();
 
-    // Wiring chosen from your available-header pin table:
     // SCL/SCK -> GP10
     // SDA/MOSI -> GP11
     // CS -> GP9
@@ -31,12 +30,12 @@ int main() {
     // RES -> GP28
     // BUSY -> GP8
     constexpr epaper::Pins EPD_PINS{
-        .sck = 10,
-        .mosi = 11,
-        .cs = 9,
-        .dc = 27,
-        .reset = 28,
-        .busy = 8,
+        .sck = 21,
+        .mosi = 19,
+        .cs = 22,
+        .dc = 23,
+        .reset = 24,
+        .busy = 25,
     };
 
     epaper::Epaper3in7 display(spi1, EPD_PINS);
