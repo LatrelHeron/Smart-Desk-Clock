@@ -16,73 +16,7 @@
 #include <cstdio>
 #include <cstdint>
 
-int main()
-{
-    stdio_init_all();
-    sleep_ms(2000);
-
-    leds_init();
-    leds_set_mode(LedMode::BOOTING);
-
-    printf("\n");
-    printf("Smart Desk Clock - SEN0546 test\n");
-    printf("--------------------------------\n");
-
-    i2c_init(
-        board::I2C_PORT,
-        board::I2C_BAUD_RATE);
-    gpio_set_function(
-        board::I2C_SDA_PIN,
-        GPIO_FUNC_I2C);
-    gpio_set_function(
-        board::I2C_SCL_PIN,
-        GPIO_FUNC_I2C);
-    gpio_pull_up(board::I2C_SDA_PIN);
-    gpio_pull_up(board::I2C_SCL_PIN);
-
-    SEN0546 sensor(board::I2C_PORT);
-
-    if (!sensor.initialise())
-    {
-        printf("Sensor initialisation failed\n");
-        leds_set_mode(LedMode::SENSOR_ERROR);
-    }
-    else
-    {
-        printf(
-            "Sensor ready: %s\n",
-            sensor.sensor_name());
-
-        leds_set_mode(LedMode::OK);
-    }
-
-    while (true)
-    {
-        const EnvironmentData environment =
-            sensor.read();
-
-        if (environment.valid)
-        {
-            printf(
-                "Temperature: %.2f C | Humidity: %.2f %%RH\n",
-                environment.temperature_c,
-                environment.humidity_percent);
-
-            leds_set_mode(LedMode::OK);
-        }
-        else
-        {
-            printf("Sensor reading failed\n");
-            leds_set_mode(LedMode::SENSOR_ERROR);
-        }
-
-        sleep_ms(1000);
-    }
-}
-
-/*
-int main()
-{
+int main() {
     stdio_init_all();
     sleep_ms(2000);
 
@@ -152,6 +86,9 @@ int main()
 }
 
 
+
+
+/*
 int main()
 {
     stdio_init_all();
