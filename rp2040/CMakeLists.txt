@@ -46,7 +46,8 @@ if(CrossCompiling)
     # Initialise the Raspberry Pi Pico SDK
     pico_sdk_init()
 
-    add_executable(smart_desk_clock)
+    add_executable(smart_desk_clock
+        src/temp_test.cpp)
     target_sources(smart_desk_clock 
         PUBLIC
         src/main.cpp
