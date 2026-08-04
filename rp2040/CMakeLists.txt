@@ -47,7 +47,7 @@ if(CrossCompiling)
     pico_sdk_init()
 
     add_executable(smart_desk_clock
-        src/temp_test.cpp)
+        src/main.cpp)
     target_sources(smart_desk_clock 
         PUBLIC
         src/main.cpp
@@ -57,6 +57,7 @@ if(CrossCompiling)
         src/drivers/microphone/microphone.cpp
         src/drivers/epaper/epaper_3in7.cpp
         src/drivers/SEN0546/temp_sensor.cpp
+        src/drivers/rtc/rtc.cpp
     )
     target_include_directories(smart_desk_clock
         PUBLIC 
@@ -107,6 +108,8 @@ else()
         src/drivers/LIS3DH/lis3dh.cpp
         src/drivers/microphone/microphone.cpp
         src/drivers/epaper/epaper_3in7.cpp
+        src/drivers/SEN0546/temp_sensor.cpp
+        src/drivers/rtc/rtc.cpp
         tests/mocks/pico/stdlib.cpp
         tests/mocks/pico/time.cpp
         tests/mocks/hardware/gpio.cpp
