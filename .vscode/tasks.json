@@ -7,7 +7,7 @@
             "command": "${userHome}/.pico-sdk/cmake/v3.31.5/bin/cmake",
             "args": [
                 "-S",
-                "${workspaceFolder}",
+                "${workspaceFolder}/rp2040",
                 "-B",
                 "${workspaceFolder}/build",
                 "-G",
@@ -79,9 +79,9 @@
                 "-f",
                 "interface/cmsis-dap.cfg",
                 "-f",
-                "target/${command:raspberry-pi-pico.getTarget}.cfg",
+                "target/rp2040.cfg",
                 "-c",
-                "adapter speed 5000; program \"${command:raspberry-pi-pico.launchTargetPath}\" verify reset exit"
+                "adapter speed 1000; program \"${command:raspberry-pi-pico.launchTargetPath}\" verify reset exit"
             ],
             "problemMatcher": []
         },
@@ -95,9 +95,9 @@
                 "-f",
                 "interface/cmsis-dap.cfg",
                 "-f",
-                "target/${command:raspberry-pi-pico.getChip}-rescue.cfg",
+                "target/rp2040-rescue.cfg",
                 "-c",
-                "adapter speed 5000; reset halt; exit"
+                "adapter speed 1000; reset halt; exit"
             ],
             "problemMatcher": []
         },
