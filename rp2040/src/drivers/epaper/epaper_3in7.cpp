@@ -173,7 +173,6 @@ namespace epaper
         sleep_ms(100);
         return true;
     }
-
     bool Epaper3in7::display(const uint8_t *image)
     {
         if (image == nullptr)
@@ -254,120 +253,116 @@ namespace epaper
         }
     }
     void Epaper3in7::send_partial_refresh_command(
-    int x,
-    int y,
-    int width,
-    int height)
-{
-    command(0x16); // PARTIAL_DISPLAY_REFRESH
-
-    /*
-     * DFV_EN = 0.
-     *
-     * The two lower bits contain X bits 9:8.
-     */
-    data(static_cast<uint8_t>((x >> 8) & 0x03));
-    data(static_cast<uint8_t>(x & 0xF8));
-
-    data(static_cast<uint8_t>((y >> 8) & 0x03));
-    data(static_cast<uint8_t>(y & 0xFF));
-
-    data(static_cast<uint8_t>((width >> 8) & 0x03));
-    data(static_cast<uint8_t>(width & 0xF8));
-
-    data(static_cast<uint8_t>((height >> 8) & 0x03));
-    data(static_cast<uint8_t>(height & 0xFF));
-}
-bool Epaper3in7::display_partial(
-    const uint8_t* image,
-    int x,
-    int y,
-    int width,
-    int height)
-{
-    if (image == nullptr)
+        int x,
+        int y,
+        int width,
+        int height)
     {
-        return false;
-    }
+        command(0x16); // PARTIAL_DISPLAY_REFRESH
 
-    if (!previous_valid_)
+        /*
+         * DFV_EN = 0.
+         *
+         * The two lower bits contain X bits 9:8.
+         */
+        data(static_cast<uint8_t>((x >> 8) & 0x03));
+        data(static_cast<uint8_t>(x & 0xF8));
+
+        data(static_cast<uint8_t>((y >> 8) & 0x03));
+        data(static_cast<uint8_t>(y & 0xFF));
+
+        data(static_cast<uint8_t>((width >> 8) & 0x03));
+        data(static_cast<uint8_t>(width & 0xF8));
+
+        data(static_cast<uint8_t>((height >> 8) & 0x03));
+        data(static_cast<uint8_t>(height & 0xFF));
+    }
+    bool Epaper3in7::display_partial(
+        const uint8_t *image,
+        int x,
+        int y,
+        int width,
+        int height)
     {
-        // A full frame is required before partial updates.
-        return display(image);
+        if (image == nullptr)
+        {
+            return false;
+        }
+
+        if (!previous_valid_)
+        {
+            // A full frame is required before partial updates.
+            return display(image);
+        }
+
+        if (x < 0 ||
+            y < 0 ||
+            width <= 0 ||
+            height <= 0 ||
+            x + width > WIDTH ||
+            y + height > HEIGHT)
+        {
+            return false;
+        }
+
+        /*
+         * The controller requires X and width to be byte-aligned.
+         */
+        if ((x % 8) != 0 ||
+            (width % 8) != 0)
+        {
+            return false;
+        }
+
+        // Send the old pixels currently visible on the panel.
+        send_partial_region(
+            0x14,
+            previous_,
+            x,
+            y,
+            width,
+            height);
+
+        // Send the replacement pixels.
+        send_partial_region(
+            0x15,
+            image,
+            x,
+            y,
+            width,
+            height);
+
+        send_partial_refresh_command(
+            x,
+            y,
+            width,
+            height);
+
+        sleep_ms(1);
+
+        if (!wait_while_busy())
+        {
+            return false;
+        }
+
+        const int bytes_per_row = width / 8;
+        const int framebuffer_bytes_per_row = WIDTH / 8;
+
+        for (int row = 0; row < height; ++row)
+        {
+            const std::size_t index =
+                static_cast<std::size_t>(y + row) *
+                    framebuffer_bytes_per_row +
+                static_cast<std::size_t>(x / 8);
+
+            std::memcpy(
+                &previous_[index],
+                &image[index],
+                static_cast<std::size_t>(bytes_per_row));
+        }
+
+        return true;
     }
-
-    if (x < 0 ||
-        y < 0 ||
-        width <= 0 ||
-        height <= 0 ||
-        x + width > WIDTH ||
-        y + height > HEIGHT)
-    {
-        return false;
-    }
-
-    /*
-     * The controller requires X and width to be byte-aligned.
-     */
-    if ((x % 8) != 0 ||
-        (width % 8) != 0)
-    {
-        return false;
-    }
-
-    // Send the old pixels currently visible on the panel.
-    send_partial_region(
-        0x14,
-        previous_,
-        x,
-        y,
-        width,
-        height
-    );
-
-    // Send the replacement pixels.
-    send_partial_region(
-        0x15,
-        image,
-        x,
-        y,
-        width,
-        height
-    );
-
-    send_partial_refresh_command(
-        x,
-        y,
-        width,
-        height
-    );
-
-    sleep_ms(1);
-
-    if (!wait_while_busy())
-    {
-        return false;
-    }
-
-    const int bytes_per_row = width / 8;
-    const int framebuffer_bytes_per_row = WIDTH / 8;
-
-    for (int row = 0; row < height; ++row)
-    {
-        const std::size_t index =
-            static_cast<std::size_t>(y + row) *
-                framebuffer_bytes_per_row +
-            static_cast<std::size_t>(x / 8);
-
-        std::memcpy(
-            &previous_[index],
-            &image[index],
-            static_cast<std::size_t>(bytes_per_row)
-        );
-    }
-
-    return true;
-}
 
     bool Epaper3in7::clear(bool black)
     {

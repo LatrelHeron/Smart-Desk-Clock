@@ -75,8 +75,13 @@ int main()
     }
     // Temperature/humidity sensor.
     SEN0546 sensor(board::I2C_PORT);
+    EnvironmentData latest_environment{};
 
-    if (!sensor.initialise())
+    if (sensor.initialise())
+    {
+        latest_environment = sensor.read();
+    }
+    else
     {
         printf("ERROR: Temperature sensor initialisation failed\n");
     }
@@ -106,10 +111,11 @@ int main()
 
     printf("All available devices initialised\n");
 
-    EnvironmentData latest_environment{};
+    static uint8_t image[epaper::BUFFER_SIZE];
+
     int previous_minute = -1;
 
-    absolute_time_t next_environment_read = get_absolute_time();
+    absolute_time_t next_environment_read = make_timeout_time_ms(30000);
 
     while (true)
     {
@@ -151,11 +157,11 @@ int main()
                     static_cast<double>(
                         latest_environment.humidity_percent));
             }
-
-            if (app::draw_clock_screen(
-                    display,
-                    now,
-                    latest_environment))
+            app::build_clock_screen(
+                image,
+                now,
+                latest_environment);
+            if (display.display(image))
             {
                 printf("Display updated successfully\n");
             }

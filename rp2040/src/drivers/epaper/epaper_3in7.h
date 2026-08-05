@@ -29,44 +29,8 @@ namespace epaper
         Epaper3in7(spi_inst_t *spi, Pins pins);
 
         bool init();
-        bool Epaper3in7::display(const uint8_t *image)
-        {
-            if (image == nullptr)
-            {
-                return false;
-            }
+        bool display(const uint8_t *image);
 
-            if (!previous_valid_)
-            {
-                std::memset(
-                    previous_,
-                    0xFF,
-                    BUFFER_SIZE);
-
-                previous_valid_ = true;
-            }
-
-            command(0x10); // DATA_START_TRANSMISSION_1
-            data_buffer(previous_, BUFFER_SIZE);
-
-            command(0x13); // DATA_START_TRANSMISSION_2
-            data_buffer(image, BUFFER_SIZE);
-
-            command(0x12); // DISPLAY_REFRESH
-            sleep_ms(1);
-
-            if (!wait_while_busy())
-            {
-                return false;
-            }
-
-            std::memcpy(
-                previous_,
-                image,
-                BUFFER_SIZE);
-
-            return true;
-        }
         bool display_partial(
             const std::uint8_t *image,
             int x,
@@ -107,8 +71,6 @@ namespace epaper
             int y,
             int width,
             int height);
-        std::uint8_t previous_[BUFFER_SIZE]{};
-        bool previous_valid_ = false;
     };
 
     void buffer_clear(
@@ -136,12 +98,5 @@ namespace epaper
         int y,
         const char *text,
         int scale = 2);
-
-    bool display_partial(
-        const std::uint8_t *image,
-        int x,
-        int y,
-        int width,
-        int height);
 
 } // namespace epaper
