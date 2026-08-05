@@ -58,6 +58,7 @@ if(CrossCompiling)
         src/drivers/epaper/epaper_3in7.cpp
         src/drivers/SEN0546/temp_sensor.cpp
         src/drivers/rtc/rtc.cpp
+        src/drivers/app/clock_app.cpp
     )
     target_include_directories(smart_desk_clock
         PUBLIC 
@@ -110,6 +111,7 @@ else()
         src/drivers/epaper/epaper_3in7.cpp
         src/drivers/SEN0546/temp_sensor.cpp
         src/drivers/rtc/rtc.cpp
+        src/drivers/app/clock_app.cpp
         tests/mocks/pico/stdlib.cpp
         tests/mocks/pico/time.cpp
         tests/mocks/hardware/gpio.cpp
