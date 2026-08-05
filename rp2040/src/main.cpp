@@ -11,6 +11,8 @@
 #include "drivers/microphone/microphone.h"
 #include "drivers/epaper/epaper_3in7.h"
 #include "drivers/SEN0546/temp_sensor.h"
+#include "drivers/rtc/rtc.h"
+#include "drivers/app/clock_app.h"
 
 #include "board.h"
 #include <cstdio>
