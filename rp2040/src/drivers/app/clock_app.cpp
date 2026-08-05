@@ -5,12 +5,11 @@
 
 namespace app
 {
-    bool draw_clock_screen(
-        epaper::Epaper3in7 &display,
+    void build_clock_screen(
+    std::uint8_t* image,
         const DateTime &time,
         const EnvironmentData &environment)
     {
-        static uint8_t image[epaper::BUFFER_SIZE];
 
         epaper::buffer_clear(image, false);
 
@@ -124,6 +123,5 @@ namespace app
             humidity_text,
             3);
 
-        return display.display(image);
     }
 }
