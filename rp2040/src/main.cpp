@@ -18,114 +18,140 @@
 #include <cstdio>
 #include <cstdint>
 
-#include <cstdio>
-#include <cstdint>
-
-#include "pico/stdlib.h"
-
-#include "board.h"
-#include "drivers/epaper/epaper_3in7.h"
-
 int main()
 {
     stdio_init_all();
     sleep_ms(2000);
 
-    printf("\n");
-    printf("Smart Desk Clock - E-paper diagnostic test\n");
-    printf("------------------------------------------\n");
+    printf("\nSmart Desk Clock integration test\n");
 
-    printf("1: Creating display pin configuration\n");
+    // Initialise the shared I2C bus.
+    i2c_init(
+        board::I2C_PORT,
+        board::I2C_BAUD_RATE);
 
-    epaper::Pins display_pins{
+    gpio_set_function(
+        board::I2C_SDA_PIN,
+        GPIO_FUNC_I2C);
+
+    gpio_set_function(
+        board::I2C_SCL_PIN,
+        GPIO_FUNC_I2C);
+
+    gpio_pull_up(board::I2C_SDA_PIN);
+    gpio_pull_up(board::I2C_SCL_PIN);
+
+    // RTC.
+    INS5699S rtc(board::I2C_PORT);
+
+    if (!rtc.initialise())
+    {
+        printf("ERROR: RTC initialisation failed\n");
+    }
+
+    constexpr bool SET_RTC_ON_BOOT = true;
+
+    if (SET_RTC_ON_BOOT)
+    {
+        DateTime initial_time{};
+
+        initial_time.year = 2026;
+        initial_time.month = 8;
+        initial_time.day = 5;
+        initial_time.weekday = 0x08; // Wednesday
+        initial_time.hour = 19;
+        initial_time.minute = 42;
+        initial_time.second = 0;
+        initial_time.valid = true;
+
+        if (rtc.set_datetime(initial_time))
+        {
+            printf("RTC time set successfully\n");
+        }
+        else
+        {
+            printf("ERROR: RTC time setting failed\n");
+        }
+    }
+    // Temperature/humidity sensor.
+    SEN0546 sensor(board::I2C_PORT);
+
+    if (!sensor.initialise())
+    {
+        printf("ERROR: Temperature sensor initialisation failed\n");
+    }
+
+    // E-paper pin mapping confirmed on the PCB.
+    const epaper::Pins display_pins{
         .sck = board::EPD_SCK_PIN,
         .mosi = board::EPD_MOSI_PIN,
         .cs = board::EPD_CS_PIN,
         .dc = board::EPD_DC_PIN,
         .reset = board::EPD_RST_PIN,
-        .busy = board::EPD_BUSY_PIN
-    };
-
-    printf("2: Constructing display object\n");
+        .busy = board::EPD_BUSY_PIN};
 
     epaper::Epaper3in7 display(
         board::EPD_SPI,
-        display_pins
-    );
+        display_pins);
 
-    printf("3: Calling display.init()\n");
-
-    const bool init_ok = display.init();
-
-    printf("4: display.init() returned %d\n", init_ok);
-
-    if (!init_ok)
+    if (!display.init())
     {
         printf("ERROR: Display initialisation failed\n");
 
         while (true)
         {
-            printf("Display init failed - program still running\n");
             sleep_ms(1000);
         }
     }
 
-    printf("5: Creating image buffer\n");
-
-    static uint8_t image[epaper::BUFFER_SIZE];
-
-    epaper::buffer_clear(image, false);
-
-    printf("6: Drawing test graphics\n");
-
-    epaper::draw_rect(
-        image,
-        10,
-        20,
-        220,
-        140,
-        true,
-        false
-    );
-
-    epaper::draw_text(
-        image,
-        20,
-        40,
-        "SMART DESK CLOCK",
-        3
-    );
-
-    epaper::draw_text(
-        image,
-        20,
-        100,
-        "DISPLAY TEST",
-        3
-    );
-
-    printf("7: Calling display.display()\n");
-
-    const bool display_ok = display.display(image);
-
-    printf("8: display.display() returned %d\n", display_ok);
-
-    if (!display_ok)
-    {
-        printf("ERROR: Display refresh failed\n");
-
-        while (true)
-        {
-            printf("Display refresh failed - program still running\n");
-            sleep_ms(1000);
-        }
-    }
-
-    printf("9: Display test completed successfully\n");
+    printf("All available devices initialised\n");
 
     while (true)
     {
-        printf("Program still running\n");
-        sleep_ms(1000);
+        const DateTime now = rtc.read_datetime();
+        const EnvironmentData environment = sensor.read();
+
+        if (now.valid)
+        {
+            printf(
+                "Time: %02u:%02u:%02u  Date: %02u/%02u/%04u\n",
+                static_cast<unsigned>(now.hour),
+                static_cast<unsigned>(now.minute),
+                static_cast<unsigned>(now.second),
+                static_cast<unsigned>(now.day),
+                static_cast<unsigned>(now.month),
+                static_cast<unsigned>(now.year));
+        }
+        else
+        {
+            printf("RTC reading invalid\n");
+        }
+
+        if (environment.valid)
+        {
+            printf(
+                "Temperature: %.1f C  Humidity: %.1f %%\n",
+                static_cast<double>(environment.temperature_c),
+                static_cast<double>(environment.humidity_percent));
+        }
+        else
+        {
+            printf("Environment reading invalid\n");
+        }
+
+        if (!app::draw_clock_screen(
+                display,
+                now,
+                environment))
+        {
+            printf("ERROR: Display update failed\n");
+        }
+        else
+        {
+            printf("Display updated successfully\n");
+        }
+
+        // Full e-paper refresh every 10 seconds during integration testing.
+        sleep_ms(10000);
     }
 }
