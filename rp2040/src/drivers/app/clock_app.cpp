@@ -43,10 +43,9 @@ namespace app
             std::snprintf(
                 time_text,
                 sizeof(time_text),
-                "%02u-%02u-%02u",
+                "%02u-%02u",
                 static_cast<unsigned>(time.hour),
-                static_cast<unsigned>(time.minute),
-                static_cast<unsigned>(time.second));
+                static_cast<unsigned>(time.minute));
 
             // Current font also does not contain '/'.
             std::snprintf(
