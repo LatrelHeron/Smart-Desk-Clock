@@ -161,7 +161,12 @@ int main()
                 image,
                 now,
                 latest_environment);
-            if (display.display(image))
+            if (display.display_partial(
+                    image,
+                    40,
+                    80,
+                    176,
+                    60))
             {
                 printf("Display updated successfully\n");
             }
