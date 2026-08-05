@@ -1,13 +1,15 @@
 #pragma once
 
+#include <cstdint>
+
 #include "drivers/epaper/epaper_3in7.h"
 #include "drivers/rtc/rtc.h"
 #include "drivers/SEN0546/temp_sensor.h"
 
 namespace app
 {
-    bool draw_clock_screen(
-        epaper::Epaper3in7 &display,
+    void build_clock_screen(
+        std::uint8_t* image,
         const DateTime &time,
         const EnvironmentData &environment);
 }
