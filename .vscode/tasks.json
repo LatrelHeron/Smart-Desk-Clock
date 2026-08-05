@@ -4,7 +4,7 @@
         {
             "label": "Configure Pico Project",
             "type": "process",
-            "command": "${userHome}/.pico-sdk/cmake/v3.31.5/bin/cmake",
+            "command": "${userHome}/.pico-sdk/cmake/v4.3.4/bin/cmake",
             "args": [
                 "-S",
                 "${workspaceFolder}/rp2040",
@@ -12,11 +12,11 @@
                 "${workspaceFolder}/build",
                 "-G",
                 "Ninja",
-                "-DCMAKE_MAKE_PROGRAM=${userHome}/.pico-sdk/ninja/v1.12.1/ninja",
+                "-DCMAKE_MAKE_PROGRAM=${userHome}/.pico-sdk/ninja/v1.13.2/ninja",
                 "-DCMAKE_SYSTEM_NAME=Generic",
                 "-DCMAKE_TRY_COMPILE_TARGET_TYPE=STATIC_LIBRARY",
-                "-DCMAKE_C_COMPILER=${userHome}/.pico-sdk/toolchain/14_2_Rel1/bin/arm-none-eabi-gcc",
-                "-DCMAKE_CXX_COMPILER=${userHome}/.pico-sdk/toolchain/14_2_Rel1/bin/arm-none-eabi-g++",
+                "-DCMAKE_C_COMPILER=${userHome}/.pico-sdk/toolchain/15_2_Rel1/bin/arm-none-eabi-gcc",
+                "-DCMAKE_CXX_COMPILER=${userHome}/.pico-sdk/toolchain/15_2_Rel1/bin/arm-none-eabi-g++",
                 "-DPICO_BOARD=pico"
             ],
             "problemMatcher": [],
@@ -42,7 +42,7 @@
             "label": "Compile Project",
             "type": "process",
             "isBuildCommand": true,
-            "command": "${userHome}/.pico-sdk/ninja/v1.12.1/ninja",
+            "command": "${userHome}/.pico-sdk/ninja/v1.13.2/ninja",
             "args": [
                 "-C",
                 "${workspaceFolder}/build"
@@ -57,7 +57,7 @@
         {
             "label": "Run Project",
             "type": "process",
-            "command": "${env:HOME}/.pico-sdk/picotool/2.2.0-a4/picotool/picotool",
+            "command": "${env:HOME}/.pico-sdk/picotool/2.3.0/picotool/picotool",
             "args": [
                 "load",
                 "${command:raspberry-pi-pico.launchTargetPath}",
