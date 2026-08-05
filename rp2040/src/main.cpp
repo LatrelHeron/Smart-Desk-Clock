@@ -106,52 +106,68 @@ int main()
 
     printf("All available devices initialised\n");
 
+    EnvironmentData latest_environment{};
+    int previous_minute = -1;
+
+    absolute_time_t next_environment_read = get_absolute_time();
+
     while (true)
     {
         const DateTime now = rtc.read_datetime();
-        const EnvironmentData environment = sensor.read();
 
-        if (now.valid)
+        // Read the sensor independently every 30 seconds.
+        if (absolute_time_diff_us(
+                get_absolute_time(),
+                next_environment_read) <= 0)
+        {
+            const EnvironmentData new_environment = sensor.read();
+
+            if (new_environment.valid)
+            {
+                latest_environment = new_environment;
+            }
+
+            next_environment_read = make_timeout_time_ms(30000);
+        }
+
+        // Refresh the e-paper only when the minute changes.
+        if (now.valid &&
+            static_cast<int>(now.minute) != previous_minute)
         {
             printf(
-                "Time: %02u:%02u:%02u  Date: %02u/%02u/%04u\n",
+                "Time: %02u:%02u  Date: %02u/%02u/%04u\n",
                 static_cast<unsigned>(now.hour),
                 static_cast<unsigned>(now.minute),
-                static_cast<unsigned>(now.second),
                 static_cast<unsigned>(now.day),
                 static_cast<unsigned>(now.month),
                 static_cast<unsigned>(now.year));
-        }
-        else
-        {
-            printf("RTC reading invalid\n");
+
+            if (latest_environment.valid)
+            {
+                printf(
+                    "Temperature: %.1f C  Humidity: %.1f %%\n",
+                    static_cast<double>(
+                        latest_environment.temperature_c),
+                    static_cast<double>(
+                        latest_environment.humidity_percent));
+            }
+
+            if (app::draw_clock_screen(
+                    display,
+                    now,
+                    latest_environment))
+            {
+                printf("Display updated successfully\n");
+            }
+            else
+            {
+                printf("ERROR: Display update failed\n");
+            }
+
+            previous_minute = now.minute;
         }
 
-        if (environment.valid)
-        {
-            printf(
-                "Temperature: %.1f C  Humidity: %.1f %%\n",
-                static_cast<double>(environment.temperature_c),
-                static_cast<double>(environment.humidity_percent));
-        }
-        else
-        {
-            printf("Environment reading invalid\n");
-        }
-
-        if (!app::draw_clock_screen(
-                display,
-                now,
-                environment))
-        {
-            printf("ERROR: Display update failed\n");
-        }
-        else
-        {
-            printf("Display updated successfully\n");
-        }
-
-        // Full e-paper refresh every 10 seconds during integration testing.
-        sleep_ms(10000);
+        // RTC can still be checked frequently without refreshing the display.
+        sleep_ms(250);
     }
 }
