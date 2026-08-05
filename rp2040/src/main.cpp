@@ -16,278 +16,114 @@
 #include <cstdio>
 #include <cstdint>
 
+#include <cstdio>
+#include <cstdint>
+
+#include "pico/stdlib.h"
+
+#include "board.h"
+#include "drivers/epaper/epaper_3in7.h"
+
 int main()
 {
     stdio_init_all();
     sleep_ms(2000);
 
-    leds_init();
-    leds_clear();
+    printf("\n");
+    printf("Smart Desk Clock - E-paper diagnostic test\n");
+    printf("------------------------------------------\n");
 
-    // SCL/SCK -> GP10
-    // SDA/MOSI -> GP11
-    // CS -> GP9
-    // D/C -> GP27
-    // RES -> GP28
-    // BUSY -> GP8
-    constexpr epaper::Pins EPD_PINS{
-        .sck = 21,
-        .mosi = 19,
-        .cs = 22,
-        .dc = 23,
-        .reset = 24,
-        .busy = 25,
+    printf("1: Creating display pin configuration\n");
+
+    epaper::Pins display_pins{
+        .sck = board::EPD_SCK_PIN,
+        .mosi = board::EPD_MOSI_PIN,
+        .cs = board::EPD_CS_PIN,
+        .dc = board::EPD_DC_PIN,
+        .reset = board::EPD_RST_PIN,
+        .busy = board::EPD_BUSY_PIN
     };
 
-    epaper::Epaper3in7 display(spi1, EPD_PINS);
+    printf("2: Constructing display object\n");
 
-    printf("Starting WeAct 3.7-inch e-paper test...\n");
+    epaper::Epaper3in7 display(
+        board::EPD_SPI,
+        display_pins
+    );
 
-    if (!display.init())
+    printf("3: Calling display.init()\n");
+
+    const bool init_ok = display.init();
+
+    printf("4: display.init() returned %d\n", init_ok);
+
+    if (!init_ok)
     {
-        printf("E-paper init failed or BUSY timed out.\n");
+        printf("ERROR: Display initialisation failed\n");
+
         while (true)
         {
+            printf("Display init failed - program still running\n");
             sleep_ms(1000);
         }
     }
 
-    static uint8_t image[epaper::BUFFER_SIZE];
-    epaper::buffer_clear(image, false);
-
-    epaper::draw_rect(image, 8, 8, 224, 400, true, false);
-    epaper::draw_text(image, 24, 35, "CC3501", 4);
-    epaper::draw_text(image, 24, 95, "E-DISPLAY", 3);
-    epaper::draw_text(image, 24, 135, "TEST", 3);
-
-    epaper::draw_rect(image, 24, 200, 192, 38, true, false);
-    epaper::draw_rect(image, 30, 206, 120, 26, true, true);
-
-    epaper::draw_text(image, 24, 275, "DISPLAY", 2);
-    epaper::draw_text(image, 24, 300, "WORKING", 2);
-
-    if (display.display(image))
-    {
-        printf("Display refresh completed.\n");
-    }
-    else
-    {
-        printf("Display refresh failed or BUSY timed out.\n");
-    }
-
-    // E-paper keeps the image without continuous power.
-    display.sleep();
-    printf("Display put into deep sleep.\n");
-
-    while (true)
-    {
-        sleep_ms(1000);
-    }
-}
-
-/*
-int main()
-{
-    stdio_init_all();
-    sleep_ms(2000);
-
-    leds_init();
-    leds_clear();
-
-    constexpr epaper::Pins EPD_PINS{
-        .sck = 10,
-        .mosi = 11,
-        .cs = 9,
-        .dc = 27,
-        .reset = 28,
-        .busy = 8,
-    };
-
-    epaper::Epaper3in7 display(spi1, EPD_PINS);
-
-    printf("Starting simulated e-paper clock...\n");
-
-    if (!display.init())
-    {
-        printf("E-paper initialisation failed or BUSY timed out.\n");
-
-        while (true)
-        {
-            sleep_ms(1000);
-        }
-    }
+    printf("5: Creating image buffer\n");
 
     static uint8_t image[epaper::BUFFER_SIZE];
 
-    int hour = 12;
-    int minute = 58;
-
-    // Run 10 simulated clock updates.
-    for (int update = 0; update < 10; update++)
-    {
-        char time_text[8];
-        char transition_text[32];
-
-        // Format time as HH:MM.
-        snprintf(
-            time_text,
-            sizeof(time_text),
-            "%02d:%02d",
-            hour,
-            minute
-        );
-
-        snprintf(
-            transition_text,
-            sizeof(transition_text),
-            "UPDATE %d OF 10",
-            update + 1
-        );
-
-        // Clear the previous software image.
-        epaper::buffer_clear(image, false);
-
-        // Outer clock border.
-        epaper::draw_rect(
-            image,
-            8,
-            8,
-            224,
-            400,
-            true,
-            false
-        );
-
-        epaper::draw_text(
-            image,
-            28,
-            35,
-            "SMART CLOCK",
-            2
-        );
-
-        epaper::draw_text(
-            image,
-            25,
-            115,
-            time_text,
-            5
-        );
-
-        epaper::draw_text(
-            image,
-            38,
-            205,
-            "THURSDAY",
-            2
-        );
-
-        epaper::draw_text(
-            image,
-            28,
-            240,
-            "30 JULY 2026",
-            2
-        );
-
-        epaper::draw_text(
-            image,
-            35,
-            315,
-            transition_text,
-            1
-        );
-
-        // Progress bar showing that the display is actively updating.
-        epaper::draw_rect(
-            image,
-            25,
-            350,
-            190,
-            24,
-            true,
-            false
-        );
-
-        int progress_width = (update + 1) * 18;
-
-        epaper::draw_rect(
-            image,
-            30,
-            355,
-            progress_width,
-            14,
-            true,
-            true
-        );
-
-        printf("Displaying simulated time: %s\n", time_text);
-
-        if (!display.display(image))
-        {
-            printf("Display refresh failed or BUSY timed out.\n");
-            break;
-        }
-
-        printf("Display refresh completed.\n");
-
-        // Simulate one minute passing every three seconds.
-        minute++;
-
-        if (minute >= 60)
-        {
-            minute = 0;
-            hour++;
-
-            if (hour >= 24)
-            {
-                hour = 0;
-            }
-        }
-
-        sleep_ms(3000);
-    }
-
-    // Final screen after the demonstration.
     epaper::buffer_clear(image, false);
+
+    printf("6: Drawing test graphics\n");
 
     epaper::draw_rect(
         image,
-        8,
-        8,
-        224,
-        400,
+        10,
+        20,
+        220,
+        140,
         true,
         false
     );
 
     epaper::draw_text(
         image,
-        30,
-        130,
-        "CLOCK DEMO",
+        20,
+        40,
+        "SMART DESK CLOCK",
         3
     );
 
     epaper::draw_text(
         image,
-        55,
-        190,
-        "COMPLETE",
+        20,
+        100,
+        "DISPLAY TEST",
         3
     );
 
-    display.display(image);
+    printf("7: Calling display.display()\n");
 
-    // Only put the display to sleep after all updates are finished.
-    display.sleep();
+    const bool display_ok = display.display(image);
 
-    printf("Clock demonstration complete.\n");
-    printf("Display placed into deep sleep.\n");
+    printf("8: display.display() returned %d\n", display_ok);
+
+    if (!display_ok)
+    {
+        printf("ERROR: Display refresh failed\n");
+
+        while (true)
+        {
+            printf("Display refresh failed - program still running\n");
+            sleep_ms(1000);
+        }
+    }
+
+    printf("9: Display test completed successfully\n");
 
     while (true)
     {
+        printf("Program still running\n");
         sleep_ms(1000);
     }
 }
-*/
