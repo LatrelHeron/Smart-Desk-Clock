@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <cstdint>
 
 #include "hardware/i2c.h"
 
