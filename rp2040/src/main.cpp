@@ -115,5 +115,8 @@ int main() {
         }
     previous_minute = now.minute;
     sd.writeData(DATA_FILE, "25C", "55%", std::to_string(now.year).c_str(), std::to_string(now.month).c_str(), std::to_string(now.day).c_str(), std::to_string(now.hour).c_str(), std::to_string(now.minute).c_str());
+    std::string output;
+    sd.readText(DATA_FILE, output);
+    printf("Read from file: %s", output.c_str());
     }
 }
