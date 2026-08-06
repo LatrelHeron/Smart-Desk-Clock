@@ -1,73 +1,100 @@
-/*-----------------------------------------------------------------------*/
-/* Low level disk I/O module skeleton for Petit FatFs (C)ChaN, 2014      */
-/*-----------------------------------------------------------------------*/
-
+/*
+ * FatFs R0.16 disk I/O bridge.
+ *
+ * FatFs calls these C functions. They forward to the active
+ * SDCardLowLevel C++ object.
+ */
 #include "diskio.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-/*-----------------------------------------------------------------------*/
-/* Initialize Disk Drive                                                 */
-/*-----------------------------------------------------------------------*/
+DSTATUS sd_low_level_initialize(void);
+DSTATUS sd_low_level_status(void);
 
-DSTATUS disk_initialize (void)
-{
-	DSTATUS stat;
+DRESULT sd_low_level_read(
+    BYTE* buffer,
+    LBA_t sector,
+    UINT count);
 
-	// Put your code here
+DRESULT sd_low_level_write(
+    const BYTE* buffer,
+    LBA_t sector,
+    UINT count);
 
-	return stat;
+DRESULT sd_low_level_ioctl(
+    BYTE command,
+    void* buffer);
+
+#ifdef __cplusplus
+}
+#endif
+
+DSTATUS disk_initialize(BYTE pdrv) {
+    if (pdrv != 0) {
+        return STA_NOINIT;
+    }
+
+    return sd_low_level_initialize();
 }
 
+DSTATUS disk_status(BYTE pdrv) {
+    if (pdrv != 0) {
+        return STA_NOINIT;
+    }
 
-
-/*-----------------------------------------------------------------------*/
-/* Read Partial Sector                                                   */
-/*-----------------------------------------------------------------------*/
-
-DRESULT disk_readp (
-	BYTE* buff,		/* Pointer to the destination object */
-	DWORD sector,	/* Sector number (LBA) */
-	UINT offset,	/* Offset in the sector */
-	UINT count		/* Byte count (bit15:destination) */
-)
-{
-	DRESULT res;
-
-	// Put your code here
-
-	return res;
+    return sd_low_level_status();
 }
 
+DRESULT disk_read(
+    BYTE pdrv,
+    BYTE* buffer,
+    LBA_t sector,
+    UINT count) {
 
+    if (pdrv != 0 ||
+        buffer == 0 ||
+        count == 0) {
+        return RES_PARERR;
+    }
 
-/*-----------------------------------------------------------------------*/
-/* Write Partial Sector                                                  */
-/*-----------------------------------------------------------------------*/
-
-DRESULT disk_writep (
-	BYTE* buff,		/* Pointer to the data to be written, NULL:Initiate/Finalize write operation */
-	DWORD sc		/* Sector number (LBA) or Number of bytes to send */
-)
-{
-	DRESULT res;
-
-
-	if (!buff) {
-		if (sc) {
-
-			// Initiate write process
-
-		} else {
-
-			// Finalize write process
-
-		}
-	} else {
-
-		// Send data to the disk
-
-	}
-
-	return res;
+    return sd_low_level_read(
+        buffer,
+        sector,
+        count);
 }
 
+#if FF_FS_READONLY == 0
+DRESULT disk_write(
+    BYTE pdrv,
+    const BYTE* buffer,
+    LBA_t sector,
+    UINT count) {
+
+    if (pdrv != 0 ||
+        buffer == 0 ||
+        count == 0) {
+        return RES_PARERR;
+    }
+
+    return sd_low_level_write(
+        buffer,
+        sector,
+        count);
+}
+#endif
+
+DRESULT disk_ioctl(
+    BYTE pdrv,
+    BYTE command,
+    void* buffer) {
+
+    if (pdrv != 0) {
+        return RES_PARERR;
+    }
+
+    return sd_low_level_ioctl(
+        command,
+        buffer);
+}

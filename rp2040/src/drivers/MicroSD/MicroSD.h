@@ -1,52 +1,97 @@
 #pragma once
 
+#include <cstddef>
 #include <string>
-#include "hardware/spi.h"
-#include "ff.h"
 
+#include "pico/stdlib.h"
 
-class MicroSD {
-    public:
-        MicroSD(
-            spi_inst_t* spi,
-            uint dat3,
-            uint cmd,
-            uint clk,
-            uint dat0,
-            uint cd,
-            uint baudrate
-        );
+extern "C" {
+#include "fatfs/ff.h"
+#include "fatfs/diskio.h"
+}
 
-        bool init();
+class MicroSD
+{
+public:
+    MicroSD(
+        uint cs,
+        uint clk,
+        uint cmd,
+        uint miso
+    );
 
-        bool mount();
+    bool init();
 
-        bool isMounted() const;
+    bool appendText(
+        const char* filename,
+        const char* text
+    );
 
-        bool WriteFile(const std::string& filename,
-                        const std::string& text);
+    bool readText(
+        const char* filename,
+        std::string& output
+    );
 
-        bool appendFile(const std::string& filename,
-                        const std::string& text);
+    FRESULT lastResult() const;
 
-        bool readFile(const std::string& filename,
-                  std::string& output);
+    // Called by diskio.c
+    DSTATUS diskInitialize();
 
-        bool exists(const std::string& filename);
+    DRESULT diskRead(
+        BYTE* buffer,
+        LBA_t sector,
+        UINT count
+    );
 
-        bool remove(const std::string& filename);
-    
-    private:
-        spi_inst_t* _spi;
+    DRESULT diskWrite(
+        const BYTE* buffer,
+        LBA_t sector,
+        UINT count
+    );
 
-        uint _mosi;
-        uint _miso;
-        uint _sck;
-        uint _cs;
+    DRESULT diskIoctl(
+        BYTE command,
+        void* buffer
+    );
 
-        uint _baudrate;
+    static MicroSD* active();
 
-        FATFS _fatfs;
+private:
+    uint _cs;
+    uint _clk;
+    uint _cmd;
+    uint _miso;
 
-        bool _mounted;
+    FATFS filesystem_{};
+
+    FRESULT last_result_ = FR_NOT_ENABLED;
+
+    bool initialized_ = false;
+    bool mounted_ = false;
+    bool high_capacity_ = false;
+    bool slow_clock_ = true;
+
+    static MicroSD* active_instance_;
+
+    uint8_t transfer(uint8_t value);
+
+    void select();
+    void deselect();
+
+    bool waitReady(uint32_t timeout_ms);
+
+    uint8_t sendCommand(
+        uint8_t command,
+        uint32_t argument
+    );
+
+    bool readSector(
+        uint32_t sector,
+        BYTE* buffer
+    );
+
+    bool writeSector(
+        uint32_t sector,
+        const BYTE* buffer
+    );
 };

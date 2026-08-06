@@ -61,11 +61,12 @@ if(CrossCompiling)
         src/drivers/rtc/rtc.cpp
         src/drivers/app/clock_app.cpp
         src/drivers/MicroSD/MicroSD.cpp
-        src/drivers/MicroSD/fatfs/pffconf.h
-        src/drivers/MicroSD/fatfs/diskio.c
+        src/drivers/MicroSD/fatfs/ff.c
+        src/drivers/MicroSD/fatfs/ff.h
+        src/drivers/MicroSD/fatfs/ffconf.h
         src/drivers/MicroSD/fatfs/diskio.h
-        src/drivers/MicroSD/fatfs/pff.c
-        src/drivers/MicroSD/fatfs/pff.h
+        src/drivers/MicroSD/fatfs/diskio.c
+ 
     )
     target_include_directories(smart_desk_clock
         PUBLIC 
