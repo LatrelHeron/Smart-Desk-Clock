@@ -48,7 +48,7 @@ if(CrossCompiling)
 
     add_executable(smart_desk_clock
         src/main.cpp
-        src/drivers/MicroSD/MicroSD.cpp)
+    )
     target_sources(smart_desk_clock 
         PUBLIC
         src/main.cpp
@@ -60,6 +60,12 @@ if(CrossCompiling)
         src/drivers/SEN0546/temp_sensor.cpp
         src/drivers/rtc/rtc.cpp
         src/drivers/app/clock_app.cpp
+        src/drivers/MicroSD/MicroSD.cpp
+        src/drivers/fatfs/ff.c
+        src/drivers/fatfs/ff.h
+        src/drivers/fatfs/ffconf.h
+        src/drivers/fatfs/diskio.c
+        src/drivers/fatfs/diskio.h
     )
     target_include_directories(smart_desk_clock
         PUBLIC 
@@ -113,6 +119,7 @@ else()
         src/drivers/SEN0546/temp_sensor.cpp
         src/drivers/rtc/rtc.cpp
         src/drivers/app/clock_app.cpp
+        src/drivers/MicroSD/MicroSD.cpp
         tests/mocks/pico/stdlib.cpp
         tests/mocks/pico/time.cpp
         tests/mocks/hardware/gpio.cpp
