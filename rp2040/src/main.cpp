@@ -193,12 +193,30 @@ int main()
                 image,
                 now,
                 latest_environment);
-            if (display.display_partial(
+            static bool first_display = true;
+
+            bool display_ok = false;
+
+            if (first_display)
+            {
+                printf("Performing full startup refresh\n");
+
+                display_ok = display.display(image);
+                first_display = false;
+            }
+            else
+            {
+                printf("Performing partial time refresh\n");
+
+                display_ok = display.display_partial(
                     image,
                     40,
                     80,
                     176,
-                    60))
+                    60);
+            }
+
+            if (display_ok)
             {
                 printf("Display updated successfully\n");
             }
@@ -206,6 +224,16 @@ int main()
             {
                 printf("ERROR: Display update failed\n");
             }
+            /*
+            if (display.display(image))
+            {
+                printf("Display updated successfully\n");
+            }
+            else
+            {
+                printf("ERROR: Display update failed\n");
+            }
+            */
 
             previous_minute = now.minute;
         }
