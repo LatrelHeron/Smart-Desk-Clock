@@ -4,21 +4,21 @@
 #include <cstring>
 
 bool MicroSD::init() {
-    gpio_init(_cs);
-    gpio_set_dir(_cs, GPIO_OUT);
-    gpio_put(_cs, 1);
+    gpio_init(_dat3);
+    gpio_set_dir(_dat3, GPIO_OUT);
+    gpio_put(_dat3, 1);
 
     gpio_init(_clk);
     gpio_set_dir(_clk, GPIO_OUT);
     gpio_put(_clk, 0);
 
-    gpio_init(_dat0);
-    gpio_set_dir(_dat0, GPIO_OUT);
-    gpio_put(_dat0, 1);
+    gpio_init(_cmd);
+    gpio_set_dir(_cmd, GPIO_OUT);
+    gpio_put(_cmd, 1);
 
-    gpio_init(_miso);
-    gpio_set_dir(_miso, GPIO_IN);
-    gpio_pull_up(_miso);
+    gpio_init(_dat0);
+    gpio_set_dir(_dat0, GPIO_IN);
+    gpio_pull_up(_dat0);
 }
 
 

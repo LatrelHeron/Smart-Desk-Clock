@@ -14,10 +14,10 @@ class MicroSD
 {
 public:
     MicroSD(
-        uint cs,
+        uint dat3,
         uint clk,
         uint cmd,
-        uint miso
+        uint dat0
     );
 
     bool init();
@@ -57,10 +57,10 @@ public:
     static MicroSD* active();
 
 private:
-    uint _cs;
+    uint _dat3;
     uint _clk;
     uint _cmd;
-    uint _miso;
+    uint _dat0;
 
     FATFS filesystem_{};
 
