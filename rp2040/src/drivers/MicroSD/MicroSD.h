@@ -32,6 +32,8 @@ public:
         std::string& output
     );
 
+    std::vector<std::string> get_next_event();
+
     FRESULT lastResult() const;
 
     // Called by diskio.c

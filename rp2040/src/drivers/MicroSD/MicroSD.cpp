@@ -3,6 +3,9 @@
 
 #include <algorithm>
 #include <cstring>
+#include <string>
+#include <sstream>
+#include <vector>
 
 MicroSD::MicroSD(
     uint dat3, 
@@ -122,5 +125,20 @@ bool MicroSD::readText(
     }
 
     return f_close(&file) == FR_OK;
+}
+
+std::vector<std::string> MicroSD::get_next_event() {
+    // Get event from events.txt file on SD card
+    std::string event;
+    MicroSD::readText("events.txt", event);
+
+    // Manipulate event string to present on display
+    std::vector<std::string> lines;
+    std::stringstream ss(event);
+    std::string line;
+    while (std::getline(ss, line, ';')) {
+        lines.push_back(line);
+    }
+    return lines;
 }
 
