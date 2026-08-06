@@ -5,6 +5,7 @@
  * SDCardLowLevel C++ object.
  */
 #include "diskio.h"
+#include "ff.h"
 
 #ifdef __cplusplus
 extern "C" {

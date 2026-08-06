@@ -13,11 +13,43 @@
 #include "drivers/SEN0546/temp_sensor.h"
 #include "drivers/rtc/rtc.h"
 #include "drivers/app/clock_app.h"
+#include "drivers/MicroSD/MicroSD.h"
 
 #include "board.h"
 #include <cstdio>
 #include <cstdint>
 
+
+int main() {
+    stdio_init_all();
+    sleep_ms(2000);
+
+    printf("\nSmart Desk Clock SD card test\n");
+    MicroSD sd(
+        board::SD_DAT3_PIN,
+        board::SD_CLK_PIN,
+        board::SD_CMD_PIN,
+        board::SD_DAT0_PIN
+    );
+
+    if (!sd.init()) {
+        printf("ERROR: SD card initialisation failed\n");
+    } else {
+        if (sd.appendText(DATA_FILE, "Hello, world!\n")) {
+            printf("Text appended to file successfully\n");
+        } else {
+            printf("ERROR: Failed to append text to file\n");
+        }
+
+        std::string output;
+        if (sd.readText(DATA_FILE, output)) {
+            printf("Read from file: %s", output.c_str());
+        } else {
+            printf("ERROR: Failed to read from file\n");
+        }
+    }
+}
+/*
 int main()
 {
     stdio_init_all();
@@ -182,3 +214,4 @@ int main()
         sleep_ms(250);
     }
 }
+    */

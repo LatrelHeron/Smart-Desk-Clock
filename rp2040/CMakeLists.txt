@@ -126,6 +126,11 @@ else()
         tests/mocks/hardware/gpio.cpp
         tests/mocks/hardware/pio.cpp
         tests/mocks/ws2812.cpp
+        src/drivers/MicroSD/fatfs/ff.c
+        src/drivers/MicroSD/fatfs/ff.h
+        src/drivers/MicroSD/fatfs/ffconf.h
+        src/drivers/MicroSD/fatfs/diskio.h
+        src/drivers/MicroSD/fatfs/diskio.c
     )
     target_include_directories(smart_desk_clock
         PUBLIC 

@@ -3,6 +3,18 @@
 #include <algorithm>
 #include <cstring>
 
+MicroSD::MicroSD(
+    uint dat3, 
+    uint clk, 
+    uint cmd, 
+    uint dat0)
+    : _dat3(dat3),
+     _clk(clk),
+      _cmd(cmd),
+       _dat0(dat0) {
+    
+}
+
 bool MicroSD::init() {
     gpio_init(_dat3);
     gpio_set_dir(_dat3, GPIO_OUT);
@@ -19,6 +31,8 @@ bool MicroSD::init() {
     gpio_init(_dat0);
     gpio_set_dir(_dat0, GPIO_IN);
     gpio_pull_up(_dat0);
+
+    return true;
 }
 
 

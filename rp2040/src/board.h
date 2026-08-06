@@ -38,3 +38,5 @@ namespace board
 
 #define LED_PIN 14
 #define LED_COUNT 12
+#define DATA_FILE "data.txt"
+#define CALENDAR_FILE "calendar.txt"
