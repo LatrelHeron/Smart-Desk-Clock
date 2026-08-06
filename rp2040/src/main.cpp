@@ -144,6 +144,20 @@ int main()
            if (new_environment.valid)
            {
                latest_environment = new_environment;
+
+               // Write data to file
+               sd.appendText(
+                DATA_FILE, 
+                (std::to_string(static_cast<double>(latest_environment.temperature_c)) +"," +std::to_string( static_cast<double>(latest_environment.humidity_percent)) +"\r\n").c_str()
+                );
+                
+                // Check if data written to file
+                std::string output;
+                if (sd.readText(DATA_FILE, output)) {
+                    printf("Read from file: %s", output.c_str());
+                } else {
+                    printf("ERROR: Failed to read from file\n");
+                }
            }
 
            next_environment_read = make_timeout_time_ms(30000);
