@@ -1,4 +1,5 @@
 #include "MicroSD.h"
+#include "fatfs/SDCardLowLevel.h"
 
 #include <algorithm>
 #include <cstring>
@@ -9,9 +10,9 @@ MicroSD::MicroSD(
     uint cmd, 
     uint dat0)
     : _dat3(dat3),
-     _clk(clk),
-      _cmd(cmd),
-       _dat0(dat0) {
+    _clk(clk),
+    _cmd(cmd),
+    _dat0(dat0) {
     
 }
 
@@ -32,9 +33,25 @@ bool MicroSD::init() {
     gpio_set_dir(_dat0, GPIO_IN);
     gpio_pull_up(_dat0);
 
-    return true;
-}
+     sd_low_level::configure({
+        .cs = _dat3,
+        .clk = _clk,
+        .mosi = _cmd,
+        .miso = _dat0
+    });
 
+    /*
+     * Mount FatFs. This causes FatFs to call disk_initialize(),
+     * which forwards to sd_low_level::initialize().
+     */
+    last_result_ = f_mount(
+        &filesystem_,
+        "",
+        1
+    );
+
+    return last_result_ == FR_OK;
+}
 
 bool MicroSD::appendText(const char* filename, const char* text)
 {

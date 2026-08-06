@@ -65,7 +65,9 @@ if(CrossCompiling)
         src/drivers/MicroSD/fatfs/ff.h
         src/drivers/MicroSD/fatfs/ffconf.h
         src/drivers/MicroSD/fatfs/diskio.h
-        src/drivers/MicroSD/fatfs/diskio.c
+        src/drivers/MicroSD/fatfs/diskio.cpp
+        src/drivers/MicroSD/fatfs/SDCardLowLevel.h
+        src/drivers/MicroSD/fatfs/SDCardLowLevel.cpp
  
     )
     target_include_directories(smart_desk_clock
@@ -131,6 +133,8 @@ else()
         src/drivers/MicroSD/fatfs/ffconf.h
         src/drivers/MicroSD/fatfs/diskio.h
         src/drivers/MicroSD/fatfs/diskio.c
+        src/drivers/MicroSD/fatfs/SDCardLowLevel.cpp
+        src/drivers/MicroSD/fatfs/SDCardLowLevel.h
     )
     target_include_directories(smart_desk_clock
         PUBLIC 
