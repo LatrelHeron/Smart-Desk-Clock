@@ -26,6 +26,18 @@ int main()
 
    printf("\nSmart Desk Clock integration test\n");
 
+   // Initialise SD card
+   MicroSD sd(
+       board::SD_DAT3_PIN,
+       board::SD_CLK_PIN,
+       board::SD_CMD_PIN,
+       board::SD_DAT0_PIN
+   );
+
+   if (!sd.init()) {
+       printf("ERROR: SD card initialisation failed\n");
+   }
+
    // Initialise the shared I2C bus.
    i2c_init(
        board::I2C_PORT,
