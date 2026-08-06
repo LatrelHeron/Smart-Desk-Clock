@@ -2,11 +2,8 @@
 
 #include <string>
 #include "hardware/spi.h"
-
-extern "C"
-{
 #include "ff.h"
-}
+
 
 class MicroSD {
     public:
