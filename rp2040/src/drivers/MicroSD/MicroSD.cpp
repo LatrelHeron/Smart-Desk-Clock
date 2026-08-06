@@ -136,7 +136,7 @@ std::vector<std::string> MicroSD::get_next_event() {
     std::vector<std::string> lines;
     std::stringstream ss(event);
     std::string line;
-    while (std::getline(ss, line, ';')) {
+    while (std::getline(ss, line, ',')) {
         lines.push_back(line);
     }
     return lines;
