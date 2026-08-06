@@ -23,9 +23,15 @@ public:
 
     bool init();
 
-    bool appendText(
+    bool writeData(
         const char* filename,
-        const char* text
+        std::string temperature,
+        std::string humidity,
+        std::string year,
+        std::string month,
+        std::string day,
+        std::string hour,
+        std::string minute
     );
 
     bool readText(

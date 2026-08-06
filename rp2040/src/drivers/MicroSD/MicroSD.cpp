@@ -56,8 +56,18 @@ bool MicroSD::init() {
     return last_result_ == FR_OK;
 }
 
-bool MicroSD::appendText(const char* filename, const char* text)
+bool MicroSD::writeData(
+    const char* filename,
+    std::string temperature,
+    std::string humidity,
+    std::string year,
+    std::string month,
+    std::string day,
+    std::string hour,
+    std::string minute
+)
 {
+    const char* text = (day + "/" + month + "/" + year + " " + hour + ":" + minute + "," + temperature + "," + humidity + "\r\n").c_str();
     FIL file;
     UINT written;
 

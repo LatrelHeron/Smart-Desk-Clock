@@ -19,53 +19,45 @@
 #include <cstdio>
 #include <cstdint>
 
-int main()
-{
-   stdio_init_all();
-   sleep_ms(2000);
 
-   printf("\nSmart Desk Clock integration test\n");
+int main() {
+     stdio_init_all();
+     sleep_ms(2000);
 
-   // Initialise SD card
-   MicroSD sd(
-       board::SD_DAT3_PIN,
-       board::SD_CLK_PIN,
-       board::SD_CMD_PIN,
-       board::SD_DAT0_PIN
-   );
-
-   if (!sd.init()) {
-       printf("ERROR: SD card initialisation failed\n");
-   }
-
-   // Initialise the shared I2C bus.
-   i2c_init(
+     printf("\nSmart Desk Clock SD card test\n");
+     MicroSD sd(
+        board::SD_DAT3_PIN,
+        board::SD_CLK_PIN,
+        board::SD_CMD_PIN,
+        board::SD_DAT0_PIN
+     );
+     i2c_init(
        board::I2C_PORT,
        board::I2C_BAUD_RATE);
 
-   gpio_set_function(
+    gpio_set_function(
        board::I2C_SDA_PIN,
        GPIO_FUNC_I2C);
 
-   gpio_set_function(
+    gpio_set_function(
        board::I2C_SCL_PIN,
        GPIO_FUNC_I2C);
 
-   gpio_pull_up(board::I2C_SDA_PIN);
-   gpio_pull_up(board::I2C_SCL_PIN);
+    gpio_pull_up(board::I2C_SDA_PIN);
+    gpio_pull_up(board::I2C_SCL_PIN);
 
-   // RTC.
-   INS5699S rtc(board::I2C_PORT);
+    // RTC.
+    INS5699S rtc(board::I2C_PORT);
 
-   if (!rtc.initialise())
-   {
+    if (!rtc.initialise())
+    {
        printf("ERROR: RTC initialisation failed\n");
-   }
+    }
 
-   constexpr bool SET_RTC_ON_BOOT = true;
+    constexpr bool SET_RTC_ON_BOOT = true;
 
-   if (SET_RTC_ON_BOOT)
-   {
+    if (SET_RTC_ON_BOOT)
+    {
        DateTime initial_time{};
 
        initial_time.year = 2026;
@@ -85,86 +77,30 @@ int main()
        {
            printf("ERROR: RTC time setting failed\n");
        }
-   }
-   // Temperature/humidity sensor.
-   SEN0546 sensor(board::I2C_PORT);
-   EnvironmentData latest_environment{};
+    }
+   
 
-   if (sensor.initialise())
-   {
-       latest_environment = sensor.read();
-   }
-   else
-   {
-       printf("ERROR: Temperature sensor initialisation failed\n");
-   }
+    printf("All available devices initialised\n");
 
-   // E-paper pin mapping confirmed on the PCB.
-   const epaper::Pins display_pins{
-       .sck = board::EPD_SCK_PIN,
-       .mosi = board::EPD_MOSI_PIN,
-       .cs = board::EPD_CS_PIN,
-       .dc = board::EPD_DC_PIN,
-       .reset = board::EPD_RST_PIN,
-       .busy = board::EPD_BUSY_PIN};
+    if (!sd.init()) {
+        printf("ERROR: SD card initialisation failed\n");
+    } else {
+        std::string output;
+        if (sd.readText(DATA_FILE, output)) {
+            printf("Read from file: %s", output.c_str());
+        } else {
+            printf("ERROR: Failed to read from file\n");
+        }
+    }
 
-   epaper::Epaper3in7 display(
-       board::EPD_SPI,
-       display_pins);
-
-   if (!display.init())
-   {
-       printf("ERROR: Display initialisation failed\n");
-
-       while (true)
-       {
-           sleep_ms(1000);
-       }
-   }
-
-   printf("All available devices initialised\n");
-
-   static uint8_t image[epaper::BUFFER_SIZE];
-
-   int previous_minute = -1;
+       int previous_minute = -1;
 
    absolute_time_t next_environment_read = make_timeout_time_ms(30000);
 
    while (true)
    {
-       const DateTime now = rtc.read_datetime();
-
-       // Read the sensor independently every 30 seconds.
-       if (absolute_time_diff_us(
-               get_absolute_time(),
-               next_environment_read) <= 0)
-       {
-           const EnvironmentData new_environment = sensor.read();
-
-           if (new_environment.valid)
-           {
-               latest_environment = new_environment;
-
-               // Write data to file
-               sd.appendText(
-                DATA_FILE, 
-                (std::to_string(static_cast<double>(latest_environment.temperature_c)) +"," +std::to_string( static_cast<double>(latest_environment.humidity_percent)) +"\r\n").c_str()
-                );
-                
-                // Check if data written to file
-                std::string output;
-                if (sd.readText(DATA_FILE, output)) {
-                    printf("Read from file: %s", output.c_str());
-                } else {
-                    printf("ERROR: Failed to read from file\n");
-                }
-           }
-
-           next_environment_read = make_timeout_time_ms(30000);
-       }
-
-       // Refresh the e-paper only when the minute changes.
-       if (now.valid &&
+     const DateTime now = rtc.read_datetime();
+         if (now.valid &&
            static_cast<int>(now.minute) != previous_minute)
        {
            printf(
@@ -173,99 +109,11 @@ int main()
                static_cast<unsigned>(now.minute),
                static_cast<unsigned>(now.day),
                static_cast<unsigned>(now.month),
-               static_cast<unsigned>(now.year));
+               static_cast<unsigned>(now.year)
+            );
 
-           if (latest_environment.valid)
-           {
-               printf(
-                   "Temperature: %.1f C  Humidity: %.1f %%\n",
-                   static_cast<double>(
-                       latest_environment.temperature_c),
-                   static_cast<double>(
-                       latest_environment.humidity_percent));
-           }
-           app::build_clock_screen(
-               image,
-               now,
-               latest_environment);
-           static bool first_display = true;
-
-           bool display_ok = false;
-
-           if (first_display)
-           {
-               printf("Performing full startup refresh\n");
-
-               display_ok = display.display(image);
-               first_display = false;
-           }
-           else
-           {
-               printf("Performing partial time refresh\n");
-
-               display_ok = display.display_partial(
-                   image,
-                   40,
-                   80,
-                   176,
-                   60);
-           }
-
-           if (display_ok)
-           {
-               printf("Display updated successfully\n");
-           }
-           else
-           {
-               printf("ERROR: Display update failed\n");
-           }
-           /*
-           if (display.display(image))
-           {
-               printf("Display updated successfully\n");
-           }
-           else
-           {
-               printf("ERROR: Display update failed\n");
-           }
-           */
-
-           previous_minute = now.minute;
-       }
-
-       // RTC can still be checked frequently without refreshing the display.
-       sleep_ms(250);
-   }
-}
-
-/*
-int main() {
-    stdio_init_all();
-    sleep_ms(2000);
-
-    printf("\nSmart Desk Clock SD card test\n");
-    MicroSD sd(
-        board::SD_DAT3_PIN,
-        board::SD_CLK_PIN,
-        board::SD_CMD_PIN,
-        board::SD_DAT0_PIN
-    );
-
-    if (!sd.init()) {
-        printf("ERROR: SD card initialisation failed\n");
-    } else {
-        if (sd.appendText(DATA_FILE, "Hello, world!\n")) {
-            printf("Text appended to file successfully\n");
-        } else {
-            printf("ERROR: Failed to append text to file\n");
         }
-
-        std::string output;
-        if (sd.readText(DATA_FILE, output)) {
-            printf("Read from file: %s", output.c_str());
-        } else {
-            printf("ERROR: Failed to read from file\n");
-        }
+    previous_minute = now.minute;
+    sd.writeData(DATA_FILE, "25C", "55%", std::to_string(now.year).c_str(), std::to_string(now.month).c_str(), std::to_string(now.day).c_str(), std::to_string(now.hour).c_str(), std::to_string(now.minute).c_str());
     }
 }
-*/
