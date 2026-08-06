@@ -6,6 +6,7 @@
 
 namespace board
 {
+    // I2C bus for the RTC and temp/humidity sensor.
     inline i2c_inst_t *const I2C_PORT = i2c0;
 
     constexpr uint I2C_SDA_PIN = 16;
@@ -13,6 +14,7 @@ namespace board
 
     constexpr uint I2C_BAUD_RATE = 100000;
 
+    // SPI bus for the e-paper display.
     inline spi_inst_t *const EPD_SPI = spi0;
 
     constexpr uint EPD_MOSI_PIN  = 19;
@@ -21,6 +23,18 @@ namespace board
     constexpr uint EPD_DC_PIN    = 23;
     constexpr uint EPD_RST_PIN   = 24;
     constexpr uint EPD_BUSY_PIN  = 25;
+
+    // SPI bus for SD card.
+    inline spi_inst_t *const SD_SPI = spi1;
+
+    constexpr uint SD_DAT3_PIN = 5;
+    constexpr uint SD_CLK_PIN  = 6;
+    constexpr uint SD_CMD_PIN  = 7;
+    constexpr uint SD_DAT0_PIN   = 8;
+    constexpr uint SD_CD_PIN   = 9;
+
+    constexpr uint SD_BAUD_RATE = 1000000;
+
 }
 
 

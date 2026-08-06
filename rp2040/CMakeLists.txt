@@ -47,7 +47,8 @@ if(CrossCompiling)
     pico_sdk_init()
 
     add_executable(smart_desk_clock
-        src/main.cpp)
+        src/main.cpp
+        src/drivers/MicroSD/MicroSD.cpp)
     target_sources(smart_desk_clock 
         PUBLIC
         src/main.cpp
