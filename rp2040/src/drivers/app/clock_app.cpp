@@ -182,14 +182,21 @@ namespace app
         constexpr int GAP = 6;
         constexpr int COLON_WIDTH = 8;
 
-        const int h1 = hour / 10;
-        const int h2 = hour % 10;
+        uint8_t display_hour = hour % 12;
+
+        if (display_hour == 0)
+        {
+            display_hour = 12;
+        }
+
+        const int h1 = display_hour / 10;
+        const int h2 = display_hour % 10;
         const int m1 = minute / 10;
         const int m2 = minute % 10;
 
         constexpr int y = 70;
 
-        if (hour < 10)
+        if (display_hour < 10)
         {
             // 5:36 style — centred with no leading zero.
             constexpr int total_width =
@@ -457,7 +464,7 @@ namespace app
         // -----------------------------------------------------
         // Widget separator
         // -----------------------------------------------------
-
+        /*
         epaper::draw_rect(
             image,
             8,
@@ -476,7 +483,7 @@ namespace app
             75,
             true,
             true);
-
+        */
         // -----------------------------------------------------
         // Temperature widget
         // -----------------------------------------------------
