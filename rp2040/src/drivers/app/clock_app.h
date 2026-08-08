@@ -8,7 +8,7 @@
 
 namespace app
 {
-    void build_clock_screen(
+    void build_home_screen(
         std::uint8_t* image,
         const DateTime &time,
         const EnvironmentData &environment);
