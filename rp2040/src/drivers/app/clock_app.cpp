@@ -337,98 +337,6 @@ namespace app
         }
     }
 
-    // ---------------------------------------------------------
-    // Small widget icons
-    // ---------------------------------------------------------
-
-    void draw_thermometer(
-        uint8_t *image,
-        int x,
-        int y)
-    {
-        /*
-        // First design for thermometer
-        // Stem.
-        epaper::draw_rect(
-            image,
-            x + 7,
-            y,
-            6,
-            28,
-            true,
-            false);
-
-        // Mercury.
-        epaper::draw_rect(
-            image,
-            x + 9,
-            y + 10,
-            2,
-            20,
-            true,
-            true);
-
-        // Bulb.
-        epaper::draw_rect(
-            image,
-            x + 4,
-            y + 27,
-            12,
-            12,
-            true,
-            false);
-
-        epaper::draw_rect(
-            image,
-            x + 7,
-            y + 30,
-            6,
-            6,
-            true,
-            true);
-        */
-        // Stem outline
-        epaper::draw_rect(image, x + 8, y + 2, 8, 15, true, false);
-
-        // Clear inside of stem
-        epaper::draw_rect(image, x + 10, y + 4, 4, 13, false, true);
-
-        // Bulb
-        draw_circle(image, x + 12, y + 18, 6, true);
-
-        // Clear centre of bulb
-        draw_circle(image, x + 12, y + 18, 3, false);
-
-        // Mercury column
-        epaper::draw_rect(image, x + 11, y + 8, 2, 10, true, true);
-
-        // Filled centre of bulb
-        draw_circle(image, x + 12, y + 18, 3, true);
-
-        // Small temperature ticks on right
-        draw_hline(image, x + 16, y + 6, 3, true);
-        draw_hline(image, x + 16, y + 10, 3, true);
-        draw_hline(image, x + 16, y + 14, 3, true);
-    }
-
-    void draw_water_drop(
-        uint8_t *image,
-        int x,
-        int y)
-    {
-        /*
-        // First design for water drop
-        // Simple pixel droplet.
-        epaper::draw_rect(image, x + 8, y, 4, 4, true, true);
-        epaper::draw_rect(image, x + 6, y + 4, 8, 4, true, true);
-        epaper::draw_rect(image, x + 4, y + 8, 12, 4, true, true);
-        epaper::draw_rect(image, x + 2, y + 12, 16, 8, true, true);
-        epaper::draw_rect(image, x, y + 20, 20, 8, true, true);
-        epaper::draw_rect(image, x + 2, y + 28, 16, 6, true, true);
-        epaper::draw_rect(image, x + 6, y + 34, 8, 4, true, true);
-        */
-    }
-
     void draw_degree_symbol(
         uint8_t *image,
         int x,
@@ -610,11 +518,12 @@ namespace app
         // Temperature widget
         // -----------------------------------------------------
 
+        /*
         draw_thermometer(
             image,
             16,
             280);
-
+        */
         char temperature_text[16];
 
         if (environment.valid)
@@ -656,12 +565,12 @@ namespace app
         // -----------------------------------------------------
         // Humidity widget
         // -----------------------------------------------------
-
+        /*
         draw_water_drop(
             image,
             137,
             279);
-
+        */
         char humidity_text[16];
 
         if (environment.valid)
