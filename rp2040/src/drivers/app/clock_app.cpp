@@ -448,12 +448,8 @@ namespace app
         const DateTime &time,
         const EnvironmentData &environment)
     */
-    void build_vertical_screen(
-        std::uint8_t *image,
-        const DateTime &time,
-        const EnvironmentData &environment);
 
-    void build_horizontal_screen(
+    void build_vertical_screen(
         std::uint8_t *image,
         const DateTime &time,
         const EnvironmentData &environment);
@@ -630,5 +626,13 @@ namespace app
             true,
             true);
         */
+    }
+
+    void build_horizontal_screen(
+        std::uint8_t *image,
+        const DateTime &time,
+        const EnvironmentData &environment);
+    {
+        
     }
 }
