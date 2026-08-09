@@ -594,7 +594,7 @@ namespace app
             image,
             145,
             275,
-            "HUMIDITY",
+            "Humidity",
             2);
 
         epaper::draw_text(
