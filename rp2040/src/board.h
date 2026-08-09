@@ -33,6 +33,10 @@ namespace board
 
     constexpr uint SD_BAUD_RATE = 1000000;
 
+    // 1 wire communication for dev to PCB communcation
+    constexpr uint ORIENTATION_IN_PIN = 26;
+
+
 }
 
 #define LED_PIN 14
