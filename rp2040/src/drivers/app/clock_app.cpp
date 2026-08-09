@@ -243,6 +243,100 @@ namespace app
         }
     }
 
+    static void draw_hline(
+        uint8_t *image,
+        int x,
+        int y,
+        int width,
+        bool black)
+    {
+        epaper::draw_rect(
+            image,
+            x,
+            y,
+            width,
+            1,
+            black,
+            true);
+    }
+
+    static void draw_line(
+        uint8_t *image,
+        int x0,
+        int y0,
+        int x1,
+        int y1,
+        bool black)
+    {
+        int dx = (x1 > x0) ? (x1 - x0) : (x0 - x1);
+        int sx = (x0 < x1) ? 1 : -1;
+
+        int dy = (y1 > y0) ? -(y1 - y0) : -(y0 - y1);
+        int sy = (y0 < y1) ? 1 : -1;
+
+        int error = dx + dy;
+
+        while (true)
+        {
+            epaper::set_pixel(image, x0, y0, black);
+
+            if (x0 == x1 && y0 == y1)
+                break;
+
+            int e2 = 2 * error;
+
+            if (e2 >= dy)
+            {
+                error += dy;
+                x0 += sx;
+            }
+
+            if (e2 <= dx)
+            {
+                error += dx;
+                y0 += sy;
+            }
+        }
+    }
+
+    static void draw_circle(
+        uint8_t *image,
+        int centre_x,
+        int centre_y,
+        int radius,
+        bool black)
+    {
+        int x = radius;
+        int y = 0;
+        int error = 0;
+
+        while (x >= y)
+        {
+            epaper::set_pixel(image, centre_x + x, centre_y + y, black);
+            epaper::set_pixel(image, centre_x + y, centre_y + x, black);
+            epaper::set_pixel(image, centre_x - y, centre_y + x, black);
+            epaper::set_pixel(image, centre_x - x, centre_y + y, black);
+
+            epaper::set_pixel(image, centre_x - x, centre_y - y, black);
+            epaper::set_pixel(image, centre_x - y, centre_y - x, black);
+            epaper::set_pixel(image, centre_x + y, centre_y - x, black);
+            epaper::set_pixel(image, centre_x + x, centre_y - y, black);
+
+            y++;
+
+            if (error <= 0)
+            {
+                error += 2 * y + 1;
+            }
+
+            if (error > 0)
+            {
+                x--;
+                error -= 2 * x + 1;
+            }
+        }
+    }
+
     // ---------------------------------------------------------
     // Small widget icons
     // ---------------------------------------------------------
@@ -252,6 +346,8 @@ namespace app
         int x,
         int y)
     {
+        /*
+        // First design for thermometer
         // Stem.
         epaper::draw_rect(
             image,
@@ -290,6 +386,29 @@ namespace app
             6,
             true,
             true);
+        */
+        // Stem outline
+        epaper::draw_rect(image, x + 8, y + 2, 8, 15, true, false);
+
+        // Clear inside of stem
+        epaper::draw_rect(image, x + 10, y + 4, 4, 13, false, true);
+
+        // Bulb
+        draw_circle(image, x + 12, y + 18, 6, true);
+
+        // Clear centre of bulb
+        draw_circle(image, x + 12, y + 18, 3, false);
+
+        // Mercury column
+        epaper::draw_rect(image, x + 11, y + 8, 2, 10, true, true);
+
+        // Filled centre of bulb
+        draw_circle(image, x + 12, y + 18, 3, true);
+
+        // Small temperature ticks on right
+        draw_hline(image, x + 16, y + 6, 3, true);
+        draw_hline(image, x + 16, y + 10, 3, true);
+        draw_hline(image, x + 16, y + 14, 3, true);
     }
 
     void draw_water_drop(
@@ -297,6 +416,8 @@ namespace app
         int x,
         int y)
     {
+        /*
+        // First design for water drop
         // Simple pixel droplet.
         epaper::draw_rect(image, x + 8, y, 4, 4, true, true);
         epaper::draw_rect(image, x + 6, y + 4, 8, 4, true, true);
@@ -305,6 +426,7 @@ namespace app
         epaper::draw_rect(image, x, y + 20, 20, 8, true, true);
         epaper::draw_rect(image, x + 2, y + 28, 16, 6, true, true);
         epaper::draw_rect(image, x + 6, y + 34, 8, 4, true, true);
+        */
     }
 
     void draw_degree_symbol(
