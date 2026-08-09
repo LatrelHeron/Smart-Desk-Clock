@@ -454,6 +454,8 @@ namespace app
         const DateTime &time,
         const EnvironmentData &environment);
     {
+        epaper::set_rotation(epaper::Rotation::Portrait);
+
         epaper::buffer_clear(image, false);
 
         // -----------------------------------------------------
@@ -633,6 +635,6 @@ namespace app
         const DateTime &time,
         const EnvironmentData &environment);
     {
-        
+
     }
 }
