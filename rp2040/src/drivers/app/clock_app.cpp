@@ -442,11 +442,21 @@ namespace app
     // ---------------------------------------------------------
     // Build entire clock screen
     // ---------------------------------------------------------
-
+    /*
     void build_home_screen(
         uint8_t *image,
         const DateTime &time,
         const EnvironmentData &environment)
+    */
+    void build_vertical_screen(
+        std::uint8_t *image,
+        const DateTime &time,
+        const EnvironmentData &environment);
+
+    void build_horizontal_screen(
+        std::uint8_t *image,
+        const DateTime &time,
+        const EnvironmentData &environment);
     {
         epaper::buffer_clear(image, false);
 
