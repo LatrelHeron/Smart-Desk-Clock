@@ -23,6 +23,14 @@ namespace epaper
         uint busy;
     };
 
+    enum class Rotation
+    {
+        Portrait,
+        Landscape
+    };
+
+    void set_rotation(Rotation rotation);
+
     class Epaper3in7
     {
     public:
