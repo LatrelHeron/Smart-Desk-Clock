@@ -203,6 +203,13 @@ namespace epaper
         return true;
     }
 
+    static Rotation current_rotation = Rotation::Portrait;
+
+    void set_rotation(Rotation rotation)
+    {
+        current_rotation = rotation;
+    }
+
     void Epaper3in7::send_partial_region(
         uint8_t command_value,
         const uint8_t *image,
@@ -252,6 +259,7 @@ namespace epaper
                 static_cast<std::size_t>(bytes_per_row));
         }
     }
+
     void Epaper3in7::send_partial_refresh_command(
         int x,
         int y,
