@@ -531,7 +531,7 @@ namespace app
             std::snprintf(
                 temperature_text,
                 sizeof(temperature_text),
-                "%.1f",
+                "%.1f C",
                 static_cast<double>(
                     environment.temperature_c));
         }
@@ -540,27 +540,27 @@ namespace app
             std::snprintf(
                 temperature_text,
                 sizeof(temperature_text),
-                "--.-");
+                "--.- C");
         }
 
         epaper::draw_text(
             image,
-            42,
-            288,
-            temperature_text,
-            3);
-
+            22,
+            275,
+            "Temp",
+            2);
+        /*
         draw_degree_symbol(
             image,
             101,
             283);
-
+        */
         epaper::draw_text(
             image,
-            108,
-            288,
-            "C",
-            2);
+            12,
+            305,
+            temperature_text,
+            3);
 
         // -----------------------------------------------------
         // Humidity widget
@@ -578,7 +578,7 @@ namespace app
             std::snprintf(
                 humidity_text,
                 sizeof(humidity_text),
-                "%.0f",
+                "%.0f%%",
                 static_cast<double>(
                     environment.humidity_percent));
         }
@@ -587,21 +587,29 @@ namespace app
             std::snprintf(
                 humidity_text,
                 sizeof(humidity_text),
-                "--");
+                "--%%");
         }
 
         epaper::draw_text(
             image,
-            165,
-            288,
+            145,
+            275,
+            "HUMIDITY",
+            2);
+
+        epaper::draw_text(
+            image,
+            160,
+            305,
             humidity_text,
             3);
-
+        /*
         draw_percent_symbol(
             image,
             210,
             285);
-
+        */
+        /*
         // Bottom line for some visual structure.
         epaper::draw_rect(
             image,
@@ -611,5 +619,6 @@ namespace app
             1,
             true,
             true);
+        */
     }
 }
