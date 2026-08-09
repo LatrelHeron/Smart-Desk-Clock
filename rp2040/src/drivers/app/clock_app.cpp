@@ -452,7 +452,7 @@ namespace app
     void build_vertical_screen(
         std::uint8_t *image,
         const DateTime &time,
-        const EnvironmentData &environment);
+        const EnvironmentData &environment)
     {
         epaper::set_rotation(epaper::Rotation::Portrait);
 
@@ -633,8 +633,117 @@ namespace app
     void build_horizontal_screen(
         std::uint8_t *image,
         const DateTime &time,
-        const EnvironmentData &environment);
+        const EnvironmentData &environment)
     {
+        epaper::set_rotation(
+            epaper::Rotation::Landscape);
 
+        epaper::buffer_clear(
+            image,
+            false);
+
+        char date_text[32];
+
+        std::snprintf(
+            date_text,
+            sizeof(date_text),
+            "%s %u %s",
+            weekday_name(time.weekday),
+            static_cast<unsigned>(time.day),
+            month_name(time.month));
+
+        // Left side date
+        epaper::draw_text(
+            image,
+            20,
+            20,
+            date_text,
+            2);
+
+        // Divider
+        epaper::draw_rect(
+            image,
+            190,
+            10,
+            1,
+            220,
+            true,
+            true);
+
+        // Temp label
+        epaper::draw_text(
+            image,
+            20,
+            70,
+            "Temp",
+            2);
+
+        // Humidity label
+        epaper::draw_text(
+            image,
+            105,
+            70,
+            "Humidity",
+            2);
+
+        char temperature_text[16];
+        char humidity_text[16];
+
+        if (environment.valid)
+        {
+            std::snprintf(
+                temperature_text,
+                sizeof(temperature_text),
+                "%.1f C",
+                static_cast<double>(
+                    environment.temperature_c));
+
+            std::snprintf(
+                humidity_text,
+                sizeof(humidity_text),
+                "%.0f%%",
+                static_cast<double>(
+                    environment.humidity_percent));
+        }
+        else
+        {
+            std::snprintf(
+                temperature_text,
+                sizeof(temperature_text),
+                "--.- C");
+
+            std::snprintf(
+                humidity_text,
+                sizeof(humidity_text),
+                "--%%");
+        }
+
+        epaper::draw_text(
+            image,
+            20,
+            100,
+            temperature_text,
+            3);
+
+        epaper::draw_text(
+            image,
+            120,
+            100,
+            humidity_text,
+            3);
+
+        // Empty left-side menu space
+        epaper::draw_rect(
+            image,
+            20,
+            155,
+            150,
+            1,
+            true,
+            true);
+
+        // Right-side time
+        // We can reuse your existing digit functions,
+        // but the x/y values need to be for the 416x240 canvas.
     }
 }
