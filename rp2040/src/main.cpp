@@ -62,10 +62,10 @@ int main() {
 
        initial_time.year = 2026;
        initial_time.month = 8;
-       initial_time.day = 5;
+       initial_time.day = 10;
        initial_time.weekday = 0x08; // Wednesday
-       initial_time.hour = 19;
-       initial_time.minute = 42;
+       initial_time.hour = 17;
+       initial_time.minute = 58;
        initial_time.second = 0;
        initial_time.valid = true;
 
@@ -111,19 +111,46 @@ int main() {
                static_cast<unsigned>(now.month),
                static_cast<unsigned>(now.year)
             );
+            sd.writeData(DATA_FILE,
+                "25C", 
+                "55%", 
+                std::to_string(now.year).c_str(), 
+                std::to_string(now.month).c_str(), 
+                std::to_string(now.day).c_str(), 
+                std::to_string(now.hour).c_str(), 
+                std::to_string(static_cast<unsigned>(now.minute)).c_str());
+            std::vector<std::string> next_event = sd.get_next_event("EVENTS.txt");
+            for (size_t i = 0; i < next_event.size(); i++) {
+                printf("%s\n", next_event[i].c_str());
+            }
 
+            char date_buffer[11];
+            char time_buffer[6];
+
+            snprintf(
+                date_buffer,
+                sizeof(date_buffer),
+                "%02u/%02u/%04u",
+                static_cast<unsigned int>(now.day),
+                static_cast<unsigned int>(now.month),
+                static_cast<unsigned int>(now.year)
+            );
+
+            snprintf(
+                time_buffer,
+                sizeof(time_buffer),
+                "%02u:%02u",
+                static_cast<unsigned int>(now.hour),
+                static_cast<unsigned int>(now.minute)
+            );
+
+            if (next_event.size() >= 3 &&
+                next_event[1] == date_buffer &&
+                next_event[2] == time_buffer)
+            {
+                sd.deleteLine("EVENTS.txt");
+            }
         }
     previous_minute = now.minute;
-    sd.writeData(DATA_FILE, "25C", "55%", std::to_string(now.year).c_str(), std::to_string(now.month).c_str(), std::to_string(now.day).c_str(), std::to_string(now.hour).c_str(), std::to_string(now.minute).c_str());
-    std::string output;
-    sd.readText(DATA_FILE, output);
-    printf("Read from file: %s", output.c_str());
-    std::vector<std::string> next_event = sd.get_next_event("EVENTS.txt");
-    for (size_t i = 0; i < next_event.size(); i++) {
-        printf(next_event[i].c_str());
-    }
-    if(next_event[1] == ("%02u/%02u/%04u", std::to_string(now.day).c_str(), std::to_string(now.month).c_str(), std::to_string(now.year).c_str()) && next_event[2] == ("%02u:%02u", std::to_string(now.hour), std::to_string(now.minute))) {
-        sd.deleteLine("EVENTS.txt");
-    }
     }
 }

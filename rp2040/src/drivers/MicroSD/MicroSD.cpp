@@ -180,7 +180,7 @@ std::vector<std::string> MicroSD::get_next_event(
     return event_fields;
 }
 
-bool deleteLine(const char* filename) {
+bool MicroSD::deleteLine(const char* filename) {
     {
     FIL input;
     FIL temp;

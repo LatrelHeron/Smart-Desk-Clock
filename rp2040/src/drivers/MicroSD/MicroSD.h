@@ -43,7 +43,7 @@ public:
         const char* filename
     );
 
-    void deleteLine(
+    bool deleteLine(
         const char* filename
     );
 
