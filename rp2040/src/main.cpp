@@ -102,7 +102,7 @@ int main() {
      const DateTime now = rtc.read_datetime();
          if (now.valid &&
            static_cast<int>(now.minute) != previous_minute)
-       {
+        {
            printf(
                "Time: %02u:%02u  Date: %02u/%02u/%04u\n",
                static_cast<unsigned>(now.hour),
@@ -121,5 +121,6 @@ int main() {
     for (size_t i = 0; i < sd.get_next_event("EVENTS.txt").size(); i++) {
         printf(sd.get_next_event("EVENTS.txt")[i].c_str());
     }
+
     }
 }
