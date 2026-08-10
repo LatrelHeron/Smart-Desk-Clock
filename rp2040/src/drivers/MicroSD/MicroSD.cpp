@@ -148,7 +148,49 @@ std::vector<std::string> MicroSD::get_next_event() {
     return lines;
 }
 
-void deleteLine() {
-    
+bool deleteLine(const char* filename) {
+    {
+    FIL input;
+    FIL temp;
+
+    if (f_open(&input, filename, FA_READ) != FR_OK)
+        return false;
+
+    if (f_open(&temp, "temp.txt", FA_CREATE_ALWAYS | FA_WRITE) != FR_OK) {
+        f_close(&input);
+        return false;
+    }
+
+    char buffer[128];
+
+    // Read and discard the first line
+    f_gets(buffer, sizeof(buffer), &input);
+
+    // Copy everything else
+    while (f_gets(buffer, sizeof(buffer), &input) != nullptr) {
+
+        UINT written;
+
+        if (f_write(
+                &temp,
+                buffer,
+                strlen(buffer),
+                &written
+            ) != FR_OK) {
+
+            f_close(&input);
+            f_close(&temp);
+            return false;
+        }
+    }
+
+    f_close(&input);
+    f_close(&temp);
+
+    if (f_unlink(filename) != FR_OK)
+        return false;
+
+    return f_rename("temp.txt", filename) == FR_OK;
+}
 }
 
