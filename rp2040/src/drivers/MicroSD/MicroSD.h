@@ -41,6 +41,8 @@ public:
 
     std::vector<std::string> get_next_event();
 
+    void deleteLine();
+
     FRESULT lastResult() const;
 
     // Called by diskio.c

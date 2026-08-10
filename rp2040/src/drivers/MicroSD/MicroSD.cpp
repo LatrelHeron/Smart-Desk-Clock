@@ -43,10 +43,6 @@ bool MicroSD::init() {
         .miso = _dat0
     });
 
-    /*
-     * Mount FatFs. This causes FatFs to call disk_initialize(),
-     * which forwards to sd_low_level::initialize().
-     */
     last_result_ = f_mount(
         &filesystem_,
         "",
@@ -150,5 +146,9 @@ std::vector<std::string> MicroSD::get_next_event() {
         lines.push_back(line);
     }
     return lines;
+}
+
+void deleteLine() {
+    
 }
 
