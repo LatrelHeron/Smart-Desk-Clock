@@ -64,8 +64,8 @@ int main() {
        initial_time.month = 8;
        initial_time.day = 10;
        initial_time.weekday = 0x08; // Wednesday
-       initial_time.hour = 17;
-       initial_time.minute = 58;
+       initial_time.hour = 18;
+       initial_time.minute = 00;
        initial_time.second = 0;
        initial_time.valid = true;
 
@@ -84,16 +84,9 @@ int main() {
 
     if (!sd.init()) {
         printf("ERROR: SD card initialisation failed\n");
-    } else {
-        std::string output;
-        if (sd.readText(DATA_FILE, output)) {
-            printf("Read from file: %s", output.c_str());
-        } else {
-            printf("ERROR: Failed to read from file\n");
-        }
-    }
-
-       int previous_minute = -1;
+    } 
+    
+    int previous_minute = -1;
 
    absolute_time_t next_environment_read = make_timeout_time_ms(30000);
 
@@ -119,9 +112,10 @@ int main() {
                 std::to_string(now.day).c_str(), 
                 std::to_string(now.hour).c_str(), 
                 std::to_string(static_cast<unsigned>(now.minute)).c_str());
+
             std::vector<std::string> next_event = sd.get_next_event("EVENTS.txt");
             for (size_t i = 0; i < next_event.size(); i++) {
-                printf("%s\n", next_event[i].c_str());
+                printf("%s ", next_event[i].c_str());
             }
 
             char date_buffer[11];
@@ -144,11 +138,11 @@ int main() {
                 static_cast<unsigned int>(now.minute)
             );
 
-            if (next_event.size() >= 3 &&
-                next_event[1] == date_buffer &&
+            if (next_event[1] == date_buffer &&
                 next_event[2] == time_buffer)
             {
                 sd.deleteLine("EVENTS.txt");
+                printf("comparison success");
             }
         }
     previous_minute = now.minute;
