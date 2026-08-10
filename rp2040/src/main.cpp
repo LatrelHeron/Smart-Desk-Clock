@@ -118,6 +118,8 @@ int main() {
     std::string output;
     sd.readText(DATA_FILE, output);
     printf("Read from file: %s", output.c_str());
-    sd.get_next_event("EVENTS.txt");
+    for (size_t i = 0; i < sd.get_next_event("EVENTS.txt").size(); i++) {
+        printf(sd.get_next_event("EVENTS.txt")[i].c_str());
+    }
     }
 }
