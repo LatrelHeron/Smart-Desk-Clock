@@ -41,7 +41,9 @@ public:
 
     std::vector<std::string> get_next_event();
 
-    void deleteLine();
+    void deleteLine(
+        const char* filename
+    );
 
     FRESULT lastResult() const;
 
