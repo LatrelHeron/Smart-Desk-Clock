@@ -133,19 +133,51 @@ bool MicroSD::readText(
     return f_close(&file) == FR_OK;
 }
 
-std::vector<std::string> MicroSD::get_next_event() {
     // Get event from events.txt file on SD card
-    std::string event;
-    MicroSD::readText("events.txt", event);
+std::vector<std::string> MicroSD::get_next_event(
+    const char* filename
+)
+{
+    FIL file;
 
-    // Manipulate event string to present on display
-    std::vector<std::string> lines;
-    std::stringstream ss(event);
-    std::string line;
-    while (std::getline(ss, line, ',')) {
-        lines.push_back(line);
+    last_result_ = f_open(
+        &file,
+        "events.txt",
+        FA_READ
+    );
+
+    if (last_result_ != FR_OK) {
+        return {};
     }
-    return lines;
+
+    char buffer[128];
+
+    // Read ONE line
+    if (f_gets(buffer, sizeof(buffer), &file) == nullptr) {
+        f_close(&file);
+        return {};
+    }
+
+    f_close(&file);
+
+    std::string event(buffer);
+
+    // Remove newline characters
+    while (!event.empty() &&
+           (event.back() == '\n' || event.back() == '\r')) {
+        event.pop_back();
+    }
+
+    // Split line by commas
+    std::vector<std::string> fields;
+    std::stringstream ss(event);
+    std::string field;
+
+    while (std::getline(ss, field, ',')) {
+        fields.push_back(field);
+    }
+
+    return fields;
 }
 
 bool deleteLine(const char* filename) {

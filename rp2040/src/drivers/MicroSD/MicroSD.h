@@ -39,7 +39,9 @@ public:
         std::string& output
     );
 
-    std::vector<std::string> get_next_event();
+    std::vector<std::string> get_next_event(
+        const char* filename
+    );
 
     void deleteLine(
         const char* filename
