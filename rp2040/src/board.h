@@ -36,6 +36,10 @@ namespace board
     // 1 wire communication for dev to PCB communcation
     constexpr uint ORIENTATION_PIN = 20;
 
+    // Buttons
+    constexpr uint BUTTON_1_PIN = 2;
+    constexpr uint BUTTON_2_PIN = 3;
+    constexpr uint BUTTON_3_PIN = 4;
 
 }
 
