@@ -243,6 +243,123 @@ namespace app
         }
     }
 
+    void draw_large_time_horizontal(
+        uint8_t *image,
+        uint8_t hour,
+        uint8_t minute)
+    {
+        uint8_t display_hour = hour % 12;
+
+        if (display_hour == 0)
+        {
+            display_hour = 12;
+        }
+
+        const int h1 = display_hour / 10;
+        const int h2 = display_hour % 10;
+        const int m1 = minute / 10;
+        const int m2 = minute % 10;
+
+        constexpr int DIGIT_HEIGHT = 145;
+        constexpr int THICKNESS = 7;
+        constexpr int GAP = 6;
+        constexpr int COLON_WIDTH = 8;
+
+        constexpr int RIGHT_START = 205;
+        constexpr int RIGHT_END = 405;
+        constexpr int RIGHT_WIDTH =
+            RIGHT_END - RIGHT_START;
+
+        constexpr int y = 45;
+
+        if (display_hour < 10)
+        {
+            constexpr int DIGIT_WIDTH = 42;
+
+            constexpr int total_width =
+                DIGIT_WIDTH * 3 +
+                GAP * 3 +
+                COLON_WIDTH;
+
+            int x =
+                RIGHT_START +
+                (RIGHT_WIDTH - total_width) / 2;
+
+            draw_digit(
+                image, x, y, h2,
+                DIGIT_WIDTH,
+                DIGIT_HEIGHT,
+                THICKNESS);
+
+            x += DIGIT_WIDTH + GAP;
+
+            draw_colon(image, x, y);
+
+            x += COLON_WIDTH + GAP;
+
+            draw_digit(
+                image, x, y, m1,
+                DIGIT_WIDTH,
+                DIGIT_HEIGHT,
+                THICKNESS);
+
+            x += DIGIT_WIDTH + GAP;
+
+            draw_digit(
+                image, x, y, m2,
+                DIGIT_WIDTH,
+                DIGIT_HEIGHT,
+                THICKNESS);
+        }
+        else
+        {
+            constexpr int DIGIT_WIDTH = 36;
+
+            constexpr int total_width =
+                DIGIT_WIDTH * 4 +
+                GAP * 4 +
+                COLON_WIDTH;
+
+            int x =
+                RIGHT_START +
+                (RIGHT_WIDTH - total_width) / 2;
+
+            draw_digit(
+                image, x, y, h1,
+                DIGIT_WIDTH,
+                DIGIT_HEIGHT,
+                THICKNESS);
+
+            x += DIGIT_WIDTH + GAP;
+
+            draw_digit(
+                image, x, y, h2,
+                DIGIT_WIDTH,
+                DIGIT_HEIGHT,
+                THICKNESS);
+
+            x += DIGIT_WIDTH + GAP;
+
+            draw_colon(image, x, y);
+
+            x += COLON_WIDTH + GAP;
+
+            draw_digit(
+                image, x, y, m1,
+                DIGIT_WIDTH,
+                DIGIT_HEIGHT,
+                THICKNESS);
+
+            x += DIGIT_WIDTH + GAP;
+
+            draw_digit(
+                image, x, y, m2,
+                DIGIT_WIDTH,
+                DIGIT_HEIGHT,
+                THICKNESS);
+        }
+    }
+
     static void draw_hline(
         uint8_t *image,
         int x,
@@ -555,7 +672,7 @@ namespace app
             image,
             22,
             275,
-            "Temp",
+            "Tempt",
             2);
         /*
         draw_degree_symbol(
@@ -602,7 +719,7 @@ namespace app
             image,
             145,
             275,
-            "Humidity",
+            "Humdty",
             2);
 
         epaper::draw_text(
@@ -675,15 +792,15 @@ namespace app
             image,
             20,
             70,
-            "Temp",
+            "Tempt",
             2);
 
         // Humidity label
         epaper::draw_text(
             image,
-            105,
+            110,
             70,
-            "Humidity",
+            "Hmdty",
             2);
 
         char temperature_text[16];
@@ -742,8 +859,13 @@ namespace app
             true,
             true);
 
+        // -----------------------------------------------------
         // Right-side time
-        // We can reuse your existing digit functions,
-        // but the x/y values need to be for the 416x240 canvas.
+        // -----------------------------------------------------
+
+        draw_large_time_horizontal(
+            image,
+            time.hour,
+            time.minute);
     }
 }
