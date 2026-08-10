@@ -118,5 +118,6 @@ int main() {
     std::string output;
     sd.readText(DATA_FILE, output);
     printf("Read from file: %s", output.c_str());
+    sd.get_next_event("EVENTS.txt");
     }
 }

@@ -169,15 +169,15 @@ std::vector<std::string> MicroSD::get_next_event(
     }
 
     // Split line by commas
-    std::vector<std::string> fields;
+    std::vector<std::string> event_fields;
     std::stringstream ss(event);
     std::string field;
 
     while (std::getline(ss, field, ',')) {
-        fields.push_back(field);
+        event_fields.push_back(field);
     }
 
-    return fields;
+    return event_fields;
 }
 
 bool deleteLine(const char* filename) {
