@@ -118,9 +118,12 @@ int main() {
     std::string output;
     sd.readText(DATA_FILE, output);
     printf("Read from file: %s", output.c_str());
-    for (size_t i = 0; i < sd.get_next_event("EVENTS.txt").size(); i++) {
-        printf(sd.get_next_event("EVENTS.txt")[i].c_str());
+    std::vector<std::string> next_event = sd.get_next_event("EVENTS.txt");
+    for (size_t i = 0; i < next_event.size(); i++) {
+        printf(next_event[i].c_str());
     }
-
+    if(next_event[1] == ("%02u/%02u/%04u", std::to_string(now.day).c_str(), std::to_string(now.month).c_str(), std::to_string(now.year).c_str()) && next_event[2] == ("%02u:%02u", std::to_string(now.hour), std::to_string(now.minute))) {
+        sd.deleteLine("EVENTS.txt");
+    }
     }
 }
