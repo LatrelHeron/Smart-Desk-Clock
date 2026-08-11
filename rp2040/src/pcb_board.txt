@@ -22,6 +22,21 @@
 #include <cstdio>
 #include <cstdint>
 
+uint32_t framebuffer_checksum(
+    const uint8_t *image)
+{
+    uint32_t checksum = 0;
+
+    for (std::size_t i = 0;
+         i < epaper::BUFFER_SIZE;
+         ++i)
+    {
+        checksum += image[i];
+    }
+
+    return checksum;
+}
+
 int main()
 {
     stdio_init_all();
@@ -202,24 +217,10 @@ int main()
         const bool orientation_changed =
             mode != previous_mode;
 
-        if (now.valid &&
-            (minute_changed ||
-             orientation_changed))
+        if (now.valid && orientation_changed)
         {
-            if (orientation_changed)
-            {
-                printf("Orientation changed -> %s\n",
-                       mode == 1 ? "VERTICAL" : "HORIZONTAL");
-            }
-            printf(
-                "Drawing %02u:%02u | %.1f C | %.0f %% | Mode: %d\n",
-                static_cast<unsigned>(now.hour),
-                static_cast<unsigned>(now.minute),
-                static_cast<double>(
-                    latest_environment.temperature_c),
-                static_cast<double>(
-                    latest_environment.humidity_percent),
-                mode);
+            printf("Orientation changed -> %s\n",
+                   mode == 1 ? "VERTICAL" : "HORIZONTAL");
 
             // -----------------------------------------------------
             // Select display layout from accelerometer mode.
@@ -230,8 +231,6 @@ int main()
 
             if (mode == 1)
             {
-                printf("Building vertical display\n");
-
                 app::build_vertical_screen(
                     image,
                     now,
@@ -239,8 +238,6 @@ int main()
             }
             else
             {
-                printf("Building horizontal display\n");
-
                 app::build_horizontal_screen(
                     image,
                     now,
@@ -251,22 +248,65 @@ int main()
             // Send completed image to e-paper display.
             // -----------------------------------------------------
 
-            if (display.display(image))
+            printf("Forcing orientation refresh...\n");
+
+            // Reset/reinitialise the e-paper controller.
+            if (!display.init())
             {
-                printf(
-                    "Home screen updated successfully\n");
+                printf("ERROR: Display reinitialisation failed\n");
             }
             else
             {
-                printf(
-                    "ERROR: Display update failed\n");
+                if (display.display(image))
+                {
+                    printf(
+                        "Orientation display refresh complete\n");
+                }
+                else
+                {
+                    printf(
+                        "ERROR: Orientation refresh failed\n");
+                }
             }
 
-            previous_minute =
-                static_cast<int>(now.minute);
+            previous_mode = mode;
 
-            previous_mode =
-                mode;
+            previous_minute = static_cast<int>(now.minute);
+        }
+        else if (now.valid && minute_changed)
+        {
+            printf(
+                "\nMinute changed -> %02u:%02u\n",
+                static_cast<unsigned>(now.hour),
+                static_cast<unsigned>(now.minute));
+
+            if (mode == 1)
+            {
+                app::build_vertical_screen(
+                    image,
+                    now,
+                    latest_environment);
+            }
+            else
+            {
+                app::build_horizontal_screen(
+                    image,
+                    now,
+                    latest_environment);
+            }
+
+            if (display.display(image))
+            {
+                printf("Minute display refresh complete\n");
+            }
+            else
+            {
+                printf("ERROR: Minute refresh failed\n");
+            }
+
+            previous_minute = static_cast<int>(now.minute);
+
+            previous_mode = mode;
         }
 
         sleep_ms(50);
