@@ -260,30 +260,25 @@ namespace app
         const int m1 = minute / 10;
         const int m2 = minute % 10;
 
-        constexpr int DIGIT_HEIGHT = 145;
+        constexpr int DIGIT_HEIGHT = 105;
         constexpr int THICKNESS = 7;
-        constexpr int GAP = 6;
+        constexpr int GAP = 8;
         constexpr int COLON_WIDTH = 8;
 
-        constexpr int RIGHT_START = 205;
-        constexpr int RIGHT_END = 405;
-        constexpr int RIGHT_WIDTH =
-            RIGHT_END - RIGHT_START;
+        constexpr int SCREEN_WIDTH = 416;
 
-        constexpr int y = 45;
+        constexpr int y = 48;
 
         if (display_hour < 10)
         {
-            constexpr int DIGIT_WIDTH = 42;
+            constexpr int DIGIT_WIDTH = 48;
 
             constexpr int total_width =
                 DIGIT_WIDTH * 3 +
                 GAP * 3 +
                 COLON_WIDTH;
 
-            int x =
-                RIGHT_START +
-                (RIGHT_WIDTH - total_width) / 2;
+            int x = (SCREEN_WIDTH - total_width) / 2;
 
             draw_digit(
                 image, x, y, h2,
@@ -313,16 +308,14 @@ namespace app
         }
         else
         {
-            constexpr int DIGIT_WIDTH = 36;
+            constexpr int DIGIT_WIDTH = 42;
 
             constexpr int total_width =
                 DIGIT_WIDTH * 4 +
                 GAP * 4 +
                 COLON_WIDTH;
 
-            int x =
-                RIGHT_START +
-                (RIGHT_WIDTH - total_width) / 2;
+            int x = (SCREEN_WIDTH - total_width) / 2;
 
             draw_digit(
                 image, x, y, h1,
@@ -358,6 +351,169 @@ namespace app
                 DIGIT_HEIGHT,
                 THICKNESS);
         }
+    }
+
+    // ---------------------------------------------------------
+    // Compact seven-segment environmental values
+    // ---------------------------------------------------------
+
+    void draw_temperature_value(
+        uint8_t *image,
+        int x,
+        int y,
+        float temperature)
+    {
+        // Example:
+        //
+        // 27 . 5  °C
+        // ^^   ^
+        // large small
+
+        int whole =
+            static_cast<int>(temperature);
+
+        int decimal =
+            static_cast<int>(
+                temperature * 10.0f) %
+            10;
+
+        if (decimal < 0)
+        {
+            decimal = -decimal;
+        }
+
+        const int tens =
+            (whole / 10) % 10;
+
+        const int ones =
+            whole % 10;
+
+        constexpr int LARGE_WIDTH = 26;
+        constexpr int LARGE_HEIGHT = 58;
+        constexpr int LARGE_THICKNESS = 5;
+
+        constexpr int SMALL_WIDTH = 15;
+        constexpr int SMALL_HEIGHT = 34;
+        constexpr int SMALL_THICKNESS = 3;
+
+        // Whole-number digits.
+        draw_digit(
+            image,
+            x,
+            y,
+            tens,
+            LARGE_WIDTH,
+            LARGE_HEIGHT,
+            LARGE_THICKNESS);
+
+        x += LARGE_WIDTH + 5;
+
+        draw_digit(
+            image,
+            x,
+            y,
+            ones,
+            LARGE_WIDTH,
+            LARGE_HEIGHT,
+            LARGE_THICKNESS);
+
+        x += LARGE_WIDTH + 5;
+
+        // Small decimal point.
+        epaper::draw_rect(
+            image,
+            x,
+            y + LARGE_HEIGHT - 6,
+            5,
+            5,
+            true,
+            true);
+
+        x += 10;
+
+        // Smaller decimal digit.
+        draw_digit(
+            image,
+            x,
+            y + 22,
+            decimal,
+            SMALL_WIDTH,
+            SMALL_HEIGHT,
+            SMALL_THICKNESS);
+
+        x += SMALL_WIDTH + 6;
+
+        // Degree symbol.
+        epaper::draw_rect(
+            image,
+            x,
+            y + 4,
+            7,
+            7,
+            true,
+            false);
+
+        // C unit.
+        epaper::draw_text(
+            image,
+            x + 11,
+            y + 5,
+            "C",
+            2);
+    }
+
+    void draw_percent_symbol(
+        uint8_t *image,
+        int x,
+        int y);
+
+    void draw_humidity_value(
+        uint8_t *image,
+        int x,
+        int y,
+        float humidity)
+    {
+        const int value =
+            static_cast<int>(humidity + 0.5f);
+
+        const int tens =
+            (value / 10) % 10;
+
+        const int ones =
+            value % 10;
+
+        constexpr int DIGIT_WIDTH = 26;
+        constexpr int DIGIT_HEIGHT = 58;
+        constexpr int THICKNESS = 5;
+
+        draw_digit(
+            image,
+            x,
+            y,
+            tens,
+            DIGIT_WIDTH,
+            DIGIT_HEIGHT,
+            THICKNESS);
+
+        x += DIGIT_WIDTH + 5;
+
+        draw_digit(
+            image,
+            x,
+            y,
+            ones,
+            DIGIT_WIDTH,
+            DIGIT_HEIGHT,
+            THICKNESS);
+
+        x += DIGIT_WIDTH + 10;
+
+        // Use the custom symbol because '%' is not
+        // currently part of the 5x7 text font.
+        draw_percent_symbol(
+            image,
+            x,
+            y + 17);
     }
 
     static void draw_hline(
@@ -759,6 +915,8 @@ namespace app
             image,
             false);
 
+        constexpr int SCREEN_WIDTH = 416;
+
         char date_text[32];
 
         std::snprintf(
@@ -769,107 +927,94 @@ namespace app
             static_cast<unsigned>(time.day),
             month_name(time.month));
 
+        const int date_length =
+            static_cast<int>(
+                std::strlen(date_text));
+
+        constexpr int DATE_SCALE = 2;
+
+        const int date_width =
+            date_length *
+            6 *
+            DATE_SCALE;
+
+        const int date_x =
+            (SCREEN_WIDTH - date_width) / 2;
+
+        constexpr int DATE_SCALE = 2;
+
         // Left side date
         epaper::draw_text(
             image,
-            20,
-            20,
+            date_x,
+            12,
             date_text,
-            2);
+            DATE_SCALE);
 
-        // Divider
-        /*
+        draw_large_time_horizontal(
+            image,
+            time.hour,
+            time.minute);
+
         epaper::draw_rect(
             image,
-            190,
-            10,
+            24,
+            178,
+            368,
             1,
-            220,
             true,
             true);
-        */
 
         // Temp label
         epaper::draw_text(
             image,
-            20,
-            70,
+            55,
+            188,
             "Tempt",
             2);
 
         // Humidity label
         epaper::draw_text(
             image,
-            110,
-            70,
+            270,
+            188,
             "Hmdty",
             2);
 
-        char temperature_text[16];
-        char humidity_text[16];
-
         if (environment.valid)
         {
-            std::snprintf(
-                temperature_text,
-                sizeof(temperature_text),
-                "%.1f C",
-                static_cast<double>(
-                    environment.temperature_c));
+            draw_temperature_value(
+                image,
+                40,
+                208,
+                environment.temperature_c);
 
-            std::snprintf(
-                humidity_text,
-                sizeof(humidity_text),
-                "%.0f%%",
-                static_cast<double>(
-                    environment.humidity_percent));
+            draw_humidity_value(
+                image,
+                285,
+                208,
+                environment.humidity_percent);
         }
         else
         {
-            std::snprintf(
-                temperature_text,
-                sizeof(temperature_text),
-                "--.- C");
+            epaper::draw_text(
+                image,
+                55,
+                213,
+                "--.- C",
+                2);
 
-            std::snprintf(
-                humidity_text,
-                sizeof(humidity_text),
-                "--%%");
+            epaper::draw_text(
+                image,
+                290,
+                213,
+                "--",
+                2);
+
+            draw_percent_symbol(
+                image,
+                335,
+                211);
         }
-
-        epaper::draw_text(
-            image,
-            20,
-            100,
-            temperature_text,
-            3);
-
-        epaper::draw_text(
-            image,
-            120,
-            100,
-            humidity_text,
-            3);
-
-        // Empty left-side menu space
-        /*
-        epaper::draw_rect(
-            image,
-            20,
-            155,
-            150,
-            1,
-            true,
-            true);
-        */
-
-        // -----------------------------------------------------
-        // Right-side time
-        // -----------------------------------------------------
-
-        draw_large_time_horizontal(
-            image,
-            time.hour,
-            time.minute);
     }
 }
