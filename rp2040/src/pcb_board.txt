@@ -156,12 +156,6 @@ int main()
     // Main application loop
     // -----------------------------------------------------
 
-    gpio_init(board::ORIENTATION_PIN);
-    gpio_set_dir(board::ORIENTATION_PIN, GPIO_IN);
-
-
-    gpio_pull_down(board::ORIENTATION_PIN);
-
     while (true)
     {
         const DateTime now =
@@ -202,10 +196,21 @@ int main()
         // 2. the display orientation changes
         // -----------------------------------------------------
 
+        const bool minute_changed =
+            static_cast<int>(now.minute) != previous_minute;
+
+        const bool orientation_changed =
+            mode != previous_mode;
+
         if (now.valid &&
-            (static_cast<int>(now.minute) != previous_minute ||
-             mode != previous_mode))
+            (minute_changed ||
+             orientation_changed))
         {
+            if (orientation_changed)
+            {
+                printf("Orientation changed -> %s\n",
+                       mode == 1 ? "VERTICAL" : "HORIZONTAL");
+            }
             printf(
                 "Drawing %02u:%02u | %.1f C | %.0f %% | Mode: %d\n",
                 static_cast<unsigned>(now.hour),
@@ -264,6 +269,6 @@ int main()
                 mode;
         }
 
-        sleep_ms(250);
+        sleep_ms(50);
     }
 }
