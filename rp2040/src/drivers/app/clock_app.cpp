@@ -941,8 +941,6 @@ namespace app
         const int date_x =
             (SCREEN_WIDTH - date_width) / 2;
 
-        constexpr int DATE_SCALE = 2;
-
         // Left side date
         epaper::draw_text(
             image,
