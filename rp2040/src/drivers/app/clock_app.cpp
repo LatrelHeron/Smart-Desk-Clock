@@ -719,7 +719,7 @@ namespace app
             image,
             145,
             275,
-            "Humdty",
+            "Hmdty",
             2);
 
         epaper::draw_text(
@@ -778,6 +778,7 @@ namespace app
             2);
 
         // Divider
+        /*
         epaper::draw_rect(
             image,
             190,
@@ -786,6 +787,7 @@ namespace app
             220,
             true,
             true);
+        */
 
         // Temp label
         epaper::draw_text(
@@ -850,6 +852,7 @@ namespace app
             3);
 
         // Empty left-side menu space
+        /*
         epaper::draw_rect(
             image,
             20,
@@ -858,6 +861,7 @@ namespace app
             1,
             true,
             true);
+        */
 
         // -----------------------------------------------------
         // Right-side time
