@@ -260,6 +260,138 @@ namespace app
         const int m1 = minute / 10;
         const int m2 = minute % 10;
 
+        constexpr int DIGIT_HEIGHT = 112;
+        constexpr int THICKNESS = 7;
+
+        constexpr int GAP = 10;
+        constexpr int COLON_WIDTH = 10;
+
+        constexpr int SCREEN_WIDTH = 416;
+
+        constexpr int y = 43;
+
+        // -----------------------------------------------------
+        // Single digit hour e.g. 9:16
+        // -----------------------------------------------------
+
+        if (display_hour < 10)
+        {
+            constexpr int DIGIT_WIDTH = 70;
+
+            constexpr int total_width =
+                DIGIT_WIDTH * 3 +
+                GAP * 3 +
+                COLON_WIDTH;
+
+            int x =
+                (SCREEN_WIDTH - total_width) / 2;
+
+            draw_digit(
+                image,
+                x,
+                y,
+                h2,
+                DIGIT_WIDTH,
+                DIGIT_HEIGHT,
+                THICKNESS);
+
+            x += DIGIT_WIDTH + GAP;
+
+            draw_colon(
+                image,
+                x,
+                y - 15);
+
+            x += COLON_WIDTH + GAP;
+
+            draw_digit(
+                image,
+                x,
+                y,
+                m1,
+                DIGIT_WIDTH,
+                DIGIT_HEIGHT,
+                THICKNESS);
+
+            x += DIGIT_WIDTH + GAP;
+
+            draw_digit(
+                image,
+                x,
+                y,
+                m2,
+                DIGIT_WIDTH,
+                DIGIT_HEIGHT,
+                THICKNESS);
+        }
+
+        // -----------------------------------------------------
+        // Two digit hour e.g. 12:16
+        // -----------------------------------------------------
+
+        else
+        {
+            constexpr int DIGIT_WIDTH = 58;
+
+            constexpr int total_width =
+                DIGIT_WIDTH * 4 +
+                GAP * 4 +
+                COLON_WIDTH;
+
+            int x =
+                (SCREEN_WIDTH - total_width) / 2;
+
+            draw_digit(
+                image,
+                x,
+                y,
+                h1,
+                DIGIT_WIDTH,
+                DIGIT_HEIGHT,
+                THICKNESS);
+
+            x += DIGIT_WIDTH + GAP;
+
+            draw_digit(
+                image,
+                x,
+                y,
+                h2,
+                DIGIT_WIDTH,
+                DIGIT_HEIGHT,
+                THICKNESS);
+
+            x += DIGIT_WIDTH + GAP;
+
+            draw_colon(
+                image,
+                x,
+                y - 15);
+
+            x += COLON_WIDTH + GAP;
+
+            draw_digit(
+                image,
+                x,
+                y,
+                m1,
+                DIGIT_WIDTH,
+                DIGIT_HEIGHT,
+                THICKNESS);
+
+            x += DIGIT_WIDTH + GAP;
+
+            draw_digit(
+                image,
+                x,
+                y,
+                m2,
+                DIGIT_WIDTH,
+                DIGIT_HEIGHT,
+                THICKNESS);
+        }
+
+        /*
         constexpr int DIGIT_HEIGHT = 105;
         constexpr int THICKNESS = 7;
         constexpr int GAP = 8;
@@ -351,6 +483,7 @@ namespace app
                 DIGIT_HEIGHT,
                 THICKNESS);
         }
+        */
     }
 
     // ---------------------------------------------------------
@@ -465,7 +598,51 @@ namespace app
     void draw_percent_symbol(
         uint8_t *image,
         int x,
-        int y);
+        int y)
+    {
+        // Top square
+        epaper::draw_rect(
+            image,
+            x,
+            y,
+            6,
+            6,
+            true,
+            false);
+
+        // Bottom square
+        epaper::draw_rect(
+            image,
+            x + 14,
+            y + 18,
+            6,
+            6,
+            true,
+            false);
+
+        // Symmetrical diagonal slash
+        for (int i = 0; i < 18; ++i)
+        {
+            const int px =
+                x + 16 - i;
+
+            const int py =
+                y + 3 + i;
+
+            // 2-pixel thickness
+            epaper::set_pixel(
+                image,
+                px,
+                py,
+                true);
+
+            epaper::set_pixel(
+                image,
+                px + 1,
+                py,
+                true);
+        }
+    }
 
     void draw_humidity_value(
         uint8_t *image,
@@ -625,40 +802,6 @@ namespace app
             false);
     }
 
-    void draw_percent_symbol(
-        uint8_t *image,
-        int x,
-        int y)
-    {
-        epaper::draw_rect(
-            image,
-            x,
-            y,
-            5,
-            5,
-            true,
-            false);
-
-        epaper::draw_rect(
-            image,
-            x + 10,
-            y + 16,
-            5,
-            5,
-            true,
-            false);
-
-        // Diagonal slash.
-        for (int i = 0; i < 16; ++i)
-        {
-            epaper::set_pixel(
-                image,
-                x + 14 - (i * 10 / 16),
-                y + 3 + i,
-                true);
-        }
-    }
-
     // ---------------------------------------------------------
     // Date helpers
     // ---------------------------------------------------------
@@ -773,7 +916,7 @@ namespace app
         epaper::draw_rect(
             image,
             16,
-            255,
+            270,
             epaper::WIDTH - 32,
             1,
             true,
@@ -786,7 +929,7 @@ namespace app
         epaper::draw_text(
             image,
             28,
-            270,
+            292,
             "TEMP",
             2);
 
@@ -796,8 +939,8 @@ namespace app
 
         epaper::draw_text(
             image,
-            135,
-            270,
+            132,
+            292,
             "HUMIDITY",
             2);
 
@@ -809,14 +952,14 @@ namespace app
         {
             draw_temperature_value(
                 image,
-                16,
-                300,
+                14,
+                325,
                 environment.temperature_c);
 
             draw_humidity_value(
                 image,
                 145,
-                300,
+                325,
                 environment.humidity_percent);
         }
         else
@@ -824,21 +967,21 @@ namespace app
             epaper::draw_text(
                 image,
                 20,
-                305,
+                330,
                 "--.- C",
                 2);
 
             epaper::draw_text(
                 image,
                 155,
-                305,
+                330,
                 "--",
                 2);
 
             draw_percent_symbol(
                 image,
                 195,
-                305);
+                328);
         }
     }
 
