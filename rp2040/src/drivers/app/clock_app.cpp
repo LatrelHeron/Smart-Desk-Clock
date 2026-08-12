@@ -388,12 +388,12 @@ namespace app
         const int ones =
             whole % 10;
 
-        constexpr int LARGE_WIDTH = 26;
-        constexpr int LARGE_HEIGHT = 58;
-        constexpr int LARGE_THICKNESS = 5;
+        constexpr int LARGE_WIDTH = 24;
+        constexpr int LARGE_HEIGHT = 40;
+        constexpr int LARGE_THICKNESS = 4;
 
-        constexpr int SMALL_WIDTH = 15;
-        constexpr int SMALL_HEIGHT = 34;
+        constexpr int SMALL_WIDTH = 13;
+        constexpr int SMALL_HEIGHT = 24;
         constexpr int SMALL_THICKNESS = 3;
 
         // Whole-number digits.
@@ -423,9 +423,9 @@ namespace app
         epaper::draw_rect(
             image,
             x,
-            y + LARGE_HEIGHT - 6,
-            5,
-            5,
+            y + LARGE_HEIGHT - 5,
+            4,
+            4,
             true,
             true);
 
@@ -435,7 +435,7 @@ namespace app
         draw_digit(
             image,
             x,
-            y + 22,
+            y + 14,
             decimal,
             SMALL_WIDTH,
             SMALL_HEIGHT,
@@ -482,9 +482,9 @@ namespace app
         const int ones =
             value % 10;
 
-        constexpr int DIGIT_WIDTH = 26;
-        constexpr int DIGIT_HEIGHT = 58;
-        constexpr int THICKNESS = 5;
+        constexpr int DIGIT_WIDTH = 24;
+        constexpr int DIGIT_HEIGHT = 40;
+        constexpr int THICKNESS = 4;
 
         draw_digit(
             image,
@@ -513,7 +513,7 @@ namespace app
         draw_percent_symbol(
             image,
             x,
-            y + 17);
+            y + 9);
     }
 
     static void draw_hline(
@@ -957,7 +957,7 @@ namespace app
         epaper::draw_rect(
             image,
             24,
-            178,
+            170,
             368,
             1,
             true,
@@ -967,7 +967,7 @@ namespace app
         epaper::draw_text(
             image,
             55,
-            188,
+            178,
             "Tempt",
             2);
 
@@ -975,7 +975,7 @@ namespace app
         epaper::draw_text(
             image,
             270,
-            188,
+            178,
             "Hmdty",
             2);
 
@@ -984,13 +984,13 @@ namespace app
             draw_temperature_value(
                 image,
                 40,
-                208,
+                196,
                 environment.temperature_c);
 
             draw_humidity_value(
                 image,
                 285,
-                208,
+                196,
                 environment.humidity_percent);
         }
         else
