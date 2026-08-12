@@ -715,12 +715,6 @@ namespace app
     // ---------------------------------------------------------
     // Build entire clock screen
     // ---------------------------------------------------------
-    /*
-    void build_home_screen(
-        uint8_t *image,
-        const DateTime &time,
-        const EnvironmentData &environment)
-    */
 
     void build_vertical_screen(
         std::uint8_t *image,
@@ -773,134 +767,79 @@ namespace app
             time.minute);
 
         // -----------------------------------------------------
-        // Widget separator
-        // -----------------------------------------------------
-        /*
-        epaper::draw_rect(
-            image,
-            8,
-            245,
-            epaper::WIDTH - 16,
-            1,
-            true,
-            true);
-
-        // Vertical divider.
-        epaper::draw_rect(
-            image,
-            120,
-            265,
-            1,
-            75,
-            true,
-            true);
-        */
-        // -----------------------------------------------------
-        // Temperature widget
+        // Environmental section divider
         // -----------------------------------------------------
 
-        /*
-        draw_thermometer(
+        epaper::draw_rect(
             image,
             16,
-            280);
-        */
-        char temperature_text[16];
-
-        if (environment.valid)
-        {
-            std::snprintf(
-                temperature_text,
-                sizeof(temperature_text),
-                "%.1f C",
-                static_cast<double>(
-                    environment.temperature_c));
-        }
-        else
-        {
-            std::snprintf(
-                temperature_text,
-                sizeof(temperature_text),
-                "--.- C");
-        }
-
-        epaper::draw_text(
-            image,
-            22,
-            275,
-            "Tempt",
-            2);
-        /*
-        draw_degree_symbol(
-            image,
-            101,
-            283);
-        */
-        epaper::draw_text(
-            image,
-            12,
-            305,
-            temperature_text,
-            3);
-
-        // -----------------------------------------------------
-        // Humidity widget
-        // -----------------------------------------------------
-        /*
-        draw_water_drop(
-            image,
-            137,
-            279);
-        */
-        char humidity_text[16];
-
-        if (environment.valid)
-        {
-            std::snprintf(
-                humidity_text,
-                sizeof(humidity_text),
-                "%.0f%%",
-                static_cast<double>(
-                    environment.humidity_percent));
-        }
-        else
-        {
-            std::snprintf(
-                humidity_text,
-                sizeof(humidity_text),
-                "--%%");
-        }
-
-        epaper::draw_text(
-            image,
-            145,
-            275,
-            "Hmdty",
-            2);
-
-        epaper::draw_text(
-            image,
-            160,
-            305,
-            humidity_text,
-            3);
-        /*
-        draw_percent_symbol(
-            image,
-            210,
-            285);
-        */
-        /*
-        // Bottom line for some visual structure.
-        epaper::draw_rect(
-            image,
-            8,
-            355,
-            epaper::WIDTH - 16,
+            255,
+            epaper::WIDTH - 32,
             1,
             true,
             true);
-        */
+
+        // -----------------------------------------------------
+        // Temperature
+        // -----------------------------------------------------
+
+        epaper::draw_text(
+            image,
+            28,
+            270,
+            "TEMP",
+            2);
+
+        // -----------------------------------------------------
+        // Humidity
+        // -----------------------------------------------------
+
+        epaper::draw_text(
+            image,
+            135,
+            270,
+            "HUMIDITY",
+            2);
+
+        // -----------------------------------------------------
+        // Environmental values
+        // -----------------------------------------------------
+
+        if (environment.valid)
+        {
+            draw_temperature_value(
+                image,
+                16,
+                300,
+                environment.temperature_c);
+
+            draw_humidity_value(
+                image,
+                145,
+                300,
+                environment.humidity_percent);
+        }
+        else
+        {
+            epaper::draw_text(
+                image,
+                20,
+                305,
+                "--.- C",
+                2);
+
+            epaper::draw_text(
+                image,
+                155,
+                305,
+                "--",
+                2);
+
+            draw_percent_symbol(
+                image,
+                195,
+                305);
+        }
     }
 
     void build_horizontal_screen(
@@ -968,7 +907,7 @@ namespace app
             image,
             55,
             178,
-            "Tempt",
+            "TEMP",
             2);
 
         // Humidity label
@@ -976,7 +915,7 @@ namespace app
             image,
             270,
             178,
-            "Hmdty",
+            "HUMIDITY",
             2);
 
         if (environment.valid)
