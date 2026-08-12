@@ -79,8 +79,8 @@ if(CrossCompiling)
     pico_set_program_version(smart_desk_clock "0.2")
 
     # select UART for standard IO
-    pico_enable_stdio_uart(smart_desk_clock 0)
-    pico_enable_stdio_usb(smart_desk_clock 1)
+    pico_enable_stdio_uart(smart_desk_clock 1)
+    pico_enable_stdio_usb(smart_desk_clock 0)
 
     # compile the PIO file
     pico_generate_pio_header(smart_desk_clock ${CMAKE_CURRENT_LIST_DIR}/src/drivers/WS2812/WS2812.pio)
@@ -132,7 +132,7 @@ else()
         src/drivers/MicroSD/fatfs/ff.h
         src/drivers/MicroSD/fatfs/ffconf.h
         src/drivers/MicroSD/fatfs/diskio.h
-        src/drivers/MicroSD/fatfs/diskio.c
+        src/drivers/MicroSD/fatfs/diskio.cpp
         src/drivers/MicroSD/fatfs/SDCardLowLevel.cpp
         src/drivers/MicroSD/fatfs/SDCardLowLevel.h
     )
