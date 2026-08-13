@@ -148,6 +148,20 @@ namespace app
         }
     }
 
+    void draw_period(
+        uint8_t *image,
+        uint8_t hour,
+        int x,
+        int y)
+    {
+        epaper::draw_text(
+            image,
+            x,
+            y,
+            hour >= 12 ? "PM" : "AM",
+            2);
+    }
+
     void draw_colon(
         uint8_t *image,
         int x,
@@ -260,15 +274,15 @@ namespace app
         const int m1 = minute / 10;
         const int m2 = minute % 10;
 
-        constexpr int DIGIT_HEIGHT = 112;
+        constexpr int REGION_X = 145;
+        constexpr int REGION_WIDTH = 271;
+
+        constexpr int DIGIT_HEIGHT = 105;
         constexpr int THICKNESS = 7;
 
-        constexpr int GAP = 10;
-        constexpr int COLON_WIDTH = 10;
+        constexpr int COLON_WIDTH = 8;
 
-        constexpr int SCREEN_WIDTH = 416;
-
-        constexpr int y = 43;
+        constexpr int y = 48;
 
         // -----------------------------------------------------
         // Single digit hour e.g. 9:16
@@ -276,15 +290,15 @@ namespace app
 
         if (display_hour < 10)
         {
-            constexpr int DIGIT_WIDTH = 70;
+            constexpr int DIGIT_WIDTH = 58;
+            constexpr int GAP = 7;
 
             constexpr int total_width =
                 DIGIT_WIDTH * 3 +
                 GAP * 3 +
                 COLON_WIDTH;
 
-            int x =
-                (SCREEN_WIDTH - total_width) / 2;
+            int x = REGION_X + (REGION_WIDTH - total_width) / 2;
 
             draw_digit(
                 image,
@@ -300,7 +314,7 @@ namespace app
             draw_colon(
                 image,
                 x,
-                y - 15);
+                y - 18);
 
             x += COLON_WIDTH + GAP;
 
@@ -324,22 +338,17 @@ namespace app
                 DIGIT_HEIGHT,
                 THICKNESS);
         }
-
-        // -----------------------------------------------------
-        // Two digit hour e.g. 12:16
-        // -----------------------------------------------------
-
         else
         {
-            constexpr int DIGIT_WIDTH = 58;
+            constexpr int DIGIT_WIDTH = 48;
+            constexpr int GAP = 6;
 
             constexpr int total_width =
                 DIGIT_WIDTH * 4 +
                 GAP * 4 +
                 COLON_WIDTH;
 
-            int x =
-                (SCREEN_WIDTH - total_width) / 2;
+            int x = REGION_X + (REGION_WIDTH - total_width) / 2;
 
             draw_digit(
                 image,
@@ -390,105 +399,7 @@ namespace app
                 DIGIT_HEIGHT,
                 THICKNESS);
         }
-
-        /*
-        constexpr int DIGIT_HEIGHT = 105;
-        constexpr int THICKNESS = 7;
-        constexpr int GAP = 8;
-        constexpr int COLON_WIDTH = 8;
-
-        constexpr int SCREEN_WIDTH = 416;
-
-        constexpr int y = 48;
-
-        if (display_hour < 10)
-        {
-            constexpr int DIGIT_WIDTH = 48;
-
-            constexpr int total_width =
-                DIGIT_WIDTH * 3 +
-                GAP * 3 +
-                COLON_WIDTH;
-
-            int x = (SCREEN_WIDTH - total_width) / 2;
-
-            draw_digit(
-                image, x, y, h2,
-                DIGIT_WIDTH,
-                DIGIT_HEIGHT,
-                THICKNESS);
-
-            x += DIGIT_WIDTH + GAP;
-
-            draw_colon(image, x, y);
-
-            x += COLON_WIDTH + GAP;
-
-            draw_digit(
-                image, x, y, m1,
-                DIGIT_WIDTH,
-                DIGIT_HEIGHT,
-                THICKNESS);
-
-            x += DIGIT_WIDTH + GAP;
-
-            draw_digit(
-                image, x, y, m2,
-                DIGIT_WIDTH,
-                DIGIT_HEIGHT,
-                THICKNESS);
-        }
-        else
-        {
-            constexpr int DIGIT_WIDTH = 42;
-
-            constexpr int total_width =
-                DIGIT_WIDTH * 4 +
-                GAP * 4 +
-                COLON_WIDTH;
-
-            int x = (SCREEN_WIDTH - total_width) / 2;
-
-            draw_digit(
-                image, x, y, h1,
-                DIGIT_WIDTH,
-                DIGIT_HEIGHT,
-                THICKNESS);
-
-            x += DIGIT_WIDTH + GAP;
-
-            draw_digit(
-                image, x, y, h2,
-                DIGIT_WIDTH,
-                DIGIT_HEIGHT,
-                THICKNESS);
-
-            x += DIGIT_WIDTH + GAP;
-
-            draw_colon(image, x, y);
-
-            x += COLON_WIDTH + GAP;
-
-            draw_digit(
-                image, x, y, m1,
-                DIGIT_WIDTH,
-                DIGIT_HEIGHT,
-                THICKNESS);
-
-            x += DIGIT_WIDTH + GAP;
-
-            draw_digit(
-                image, x, y, m2,
-                DIGIT_WIDTH,
-                DIGIT_HEIGHT,
-                THICKNESS);
-        }
-        */
     }
-
-    // ---------------------------------------------------------
-    // Compact seven-segment environmental values
-    // ---------------------------------------------------------
 
     void draw_temperature_value(
         uint8_t *image,
@@ -862,15 +773,11 @@ namespace app
     void build_vertical_screen(
         std::uint8_t *image,
         const DateTime &time,
-        const EnvironmentData &environment)
+        const EnvironmentData &environment,
+        const EventData &event)
     {
         epaper::set_rotation(epaper::Rotation::Portrait);
-
         epaper::buffer_clear(image, false);
-
-        // -----------------------------------------------------
-        // Date
-        // -----------------------------------------------------
 
         char date_text[32];
 
@@ -900,18 +807,16 @@ namespace app
             date_text,
             2);
 
-        // -----------------------------------------------------
-        // Main time
-        // -----------------------------------------------------
-
         draw_large_time(
             image,
             time.hour,
             time.minute);
 
-        // -----------------------------------------------------
-        // Environmental section divider
-        // -----------------------------------------------------
+        draw_period(
+            image,
+            time.hour,
+            192,
+            215);
 
         epaper::draw_rect(
             image,
@@ -922,10 +827,10 @@ namespace app
             true,
             true);
 
-        // -----------------------------------------------------
-        // Temperature
-        // -----------------------------------------------------
+        // Divider
+        epaper::draw_rect(image, 16, 245, epaper::WIDTH - 32, 1, true, true);
 
+        // Temperature Labels
         epaper::draw_text(
             image,
             28,
@@ -933,10 +838,7 @@ namespace app
             "TEMP",
             2);
 
-        // -----------------------------------------------------
-        // Humidity
-        // -----------------------------------------------------
-
+        // Humidity Labels
         epaper::draw_text(
             image,
             132,
@@ -944,22 +846,19 @@ namespace app
             "HUMIDITY",
             2);
 
-        // -----------------------------------------------------
         // Environmental values
-        // -----------------------------------------------------
-
         if (environment.valid)
         {
             draw_temperature_value(
                 image,
                 14,
-                325,
+                282,
                 environment.temperature_c);
 
             draw_humidity_value(
                 image,
                 145,
-                325,
+                282,
                 environment.humidity_percent);
         }
         else
@@ -967,35 +866,54 @@ namespace app
             epaper::draw_text(
                 image,
                 20,
-                330,
+                287,
                 "--.- C",
                 2);
 
             epaper::draw_text(
                 image,
                 155,
-                330,
+                287,
                 "--",
                 2);
 
             draw_percent_symbol(
                 image,
                 195,
-                328);
+                285);
+
+            // Event section
+            epaper::draw_rect(image, 16, 335, epaper::WIDTH - 32, 1, true, true);
+            epaper::draw_text(image, 18, 347, "NEXT EVENT", 2);
+            if (event.valid)
+            {
+                char event_name[19];
+                std::snprintf(event_name, sizeof(event_name), "%.18s", event.name.c_str());
+                epaper::draw_text(image, 18, 370, event_name, 1);
+                char event_details[40];
+                std::snprintf(event_details, sizeof(event_details), "%s %s", event.date.c_str(), event.time.c_str());
+                epaper::draw_text(image, 18, 392, event_details, 1);
+            }
+            else
+            {
+                epaper::draw_text(
+                    image,
+                    18,
+                    370,
+                    "NO UPCOMING EVENTS",
+                    1);
+            }
         }
     }
 
     void build_horizontal_screen(
         std::uint8_t *image,
         const DateTime &time,
-        const EnvironmentData &environment)
+        const EnvironmentData &environment,
+        const EventData &event)
     {
-        epaper::set_rotation(
-            epaper::Rotation::Landscape);
-
-        epaper::buffer_clear(
-            image,
-            false);
+        epaper::set_rotation(epaper::Rotation::Landscape);
+        epaper::buffer_clear(image, false);
 
         constexpr int SCREEN_WIDTH = 416;
 
@@ -1009,21 +927,17 @@ namespace app
             static_cast<unsigned>(time.day),
             month_name(time.month));
 
-        const int date_length =
-            static_cast<int>(
-                std::strlen(date_text));
-
         constexpr int DATE_SCALE = 2;
+
+        const int date_length = static_cast<int>(std::strlen(date_text));
 
         const int date_width =
             date_length *
             6 *
             DATE_SCALE;
 
-        const int date_x =
-            (SCREEN_WIDTH - date_width) / 2;
+        const int date_x = (SCREEN_WIDTH - date_width) / 2;
 
-        // Left side date
         epaper::draw_text(
             image,
             date_x,
@@ -1031,10 +945,45 @@ namespace app
             date_text,
             DATE_SCALE);
 
+            // Left side date
+            epaper::draw_text(
+                image,
+                15,
+                52,
+                "NEXT EVENT",
+                2);
+
+        if (event.valid)
+        {
+            char event_name[20];
+
+            std::snprintf(event_name, sizeof(event_name), "%.19s", event.name.c_str());
+            epaper::draw_text(image, 15, 82, event_name, 1);
+            epaper::draw_text(image, 15, 105, event.date.c_str(), 1);
+            epaper::draw_text( image, 15, 128, event.time.c_str(), 1);
+        }
+        else
+        {
+            epaper::draw_text(
+                image,
+                15,
+                85,
+                "NO EVENTS",
+                1
+            );
+        }
+
         draw_large_time_horizontal(
             image,
             time.hour,
             time.minute);
+
+        draw_period(
+            image,
+            time.hour,
+            374,
+            145
+        );
 
         epaper::draw_rect(
             image,
