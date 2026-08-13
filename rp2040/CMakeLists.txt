@@ -70,6 +70,8 @@ if(CrossCompiling)
         src/drivers/MicroSD/fatfs/SDCardLowLevel.cpp
         src/drivers/buttons/buttons.cpp
         src/drivers/buttons/buttons.h
+        src/time_adjust.cpp
+        src/time_adjust.h
  
     )
     target_include_directories(smart_desk_clock

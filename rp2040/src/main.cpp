@@ -19,26 +19,54 @@
 #include <cstdio>
 #include <cstdint>
 
-volatile bool button_pressed = false;
+#define SW1 2
+#define SW2 3
+#define SW3 4
+
+volatile bool button_pressed_1 = false;
+volatile bool button_pressed_2 = false;
+volatile bool button_pressed_3 = false;
 
 // Button callback function
 void button_callback(uint pin, uint32_t events) {
-    printf("Button pressed\n");
-    button_pressed = true;
+    switch (pin) {
+        case SW1: button_pressed_1 = true; break;
+        case SW2: button_pressed_2 = true; break;
+        case SW3: button_pressed_3 = true; break;
+    }
 }
 
 int main() {
     stdio_init_all();
     sleep_ms(2000);
 
-    printf("\nSmart Desk Clock SD card test\n");
+    // Initialise switch 1
+    gpio_init(SW1);
+    gpio_set_dir(SW1, GPIO_IN);
+    gpio_pull_up(SW1);
+    gpio_set_irq_enabled_with_callback(SW1, GPIO_IRQ_EDGE_RISE, true, button_callback);
+
+    //Initialise switch 2
+    gpio_init(SW2);
+    gpio_set_dir(SW2, GPIO_IN);
+    gpio_pull_up(SW2);
+    gpio_set_irq_enabled_with_callback(SW2, GPIO_IRQ_EDGE_RISE, true, button_callback);
+
+    // Initialise switch 3
+    gpio_init(SW3);
+    gpio_set_dir(SW3, GPIO_IN);
+    gpio_pull_up(SW3);
+    gpio_set_irq_enabled_with_callback(SW3, GPIO_IRQ_EDGE_RISE, true, button_callback);
+
+    printf("\nButtons and alarm test\n");
     MicroSD sd(
         board::SD_DAT3_PIN,
         board::SD_CLK_PIN,
         board::SD_CMD_PIN,
         board::SD_DAT0_PIN
      );
-     i2c_init(
+
+    i2c_init(
        board::I2C_PORT,
        board::I2C_BAUD_RATE);
 
@@ -111,46 +139,18 @@ int main() {
                static_cast<unsigned>(now.month),
                static_cast<unsigned>(now.year)
             );
-            sd.writeData(DATA_FILE,
-                "25C", 
-                "55%", 
-                std::to_string(now.year).c_str(), 
-                std::to_string(now.month).c_str(), 
-                std::to_string(now.day).c_str(), 
-                std::to_string(now.hour).c_str(), 
-                std::to_string(static_cast<unsigned>(now.minute)).c_str());
-
-            std::vector<std::string> next_event = sd.get_next_event("EVENTS.txt");
-            for (size_t i = 0; i < next_event.size(); i++) {
-                printf("%s ", next_event[i].c_str());
+        }
+        previous_minute = now.minute;
+        if (button_pressed_1) {
+            button_pressed_1 = false;
+            printf("Set time:\n");
+            if (button_pressed_2) {
+                printf("hour");
             }
-
-            char date_buffer[11];
-            char time_buffer[6];
-
-            snprintf(
-                date_buffer,
-                sizeof(date_buffer),
-                "%02u/%02u/%04u",
-                static_cast<unsigned int>(now.day),
-                static_cast<unsigned int>(now.month),
-                static_cast<unsigned int>(now.year)
-            );
-
-            snprintf(
-                time_buffer,
-                sizeof(time_buffer),
-                "%02u:%02u",
-                static_cast<unsigned int>(now.hour),
-                static_cast<unsigned int>(now.minute)
-            );
-
-            if (next_event[1] == date_buffer &&
-                next_event[2] == time_buffer)
-            {
-                sd.deleteLine("EVENTS.txt");
+            if (button_pressed_3) {
+                printf("time");
             }
         }
-    previous_minute = now.minute;
     }
 }
+
