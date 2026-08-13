@@ -39,11 +39,7 @@ void button_callback(uint pin, uint32_t events) {
 }
 
 int main() {
-
-}
-
-/*
-stdio_init_all();
+    stdio_init_all();
     sleep_ms(2000);
 
     // Initialise switch 1
@@ -154,4 +150,6 @@ stdio_init_all();
         }
         previous_minute = now.minute;
     }
-*/
+}
+
+

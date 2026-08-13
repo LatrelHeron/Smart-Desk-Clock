@@ -74,6 +74,7 @@ if(CrossCompiling)
         src/time_adjust.h
         src/drivers/buzzer/buzzer.h
         src/drivers/buzzer/buzzer.cpp
+        src/drivers/alarm/set_alarm.h
  
     )
     target_include_directories(smart_desk_clock
