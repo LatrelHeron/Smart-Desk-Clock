@@ -84,7 +84,14 @@ int main()
     gpio_pull_up(board::I2C_SDA_PIN);
     gpio_pull_up(board::I2C_SCL_PIN);
 
+    // Initialise RTC
     INS5699S rtc(board::I2C_PORT);
+
+    // Initialise Alarm
+    SetAlarm alarm(rtc, button_pressed_1, button_pressed_2, button_pressed_3);
+
+    // Initialise Buzzer
+    Buzzer buzzer(BUZZER, button_pressed_2);
 
     if (!rtc.initialise())
     {
