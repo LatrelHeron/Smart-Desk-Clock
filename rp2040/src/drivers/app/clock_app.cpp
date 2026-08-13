@@ -148,20 +148,6 @@ namespace app
         }
     }
 
-    void draw_period(
-        uint8_t *image,
-        uint8_t hour,
-        int x,
-        int y)
-    {
-        epaper::draw_text(
-            image,
-            x,
-            y,
-            hour >= 12 ? "PM" : "AM",
-            2);
-    }
-
     void draw_colon(
         uint8_t *image,
         int x,
@@ -277,10 +263,10 @@ namespace app
         constexpr int REGION_X = 0;
         constexpr int REGION_WIDTH = 250;
 
-        constexpr int DIGIT_HEIGHT = 105;
+        constexpr int DIGIT_HEIGHT = 100;
         constexpr int THICKNESS = 7;
 
-        constexpr int COLON_WIDTH = 8;
+        constexpr int COLON_WIDTH = 7;
 
         constexpr int y = 48;
 
@@ -766,10 +752,6 @@ namespace app
         return months[month];
     }
 
-    // ---------------------------------------------------------
-    // Build entire clock screen
-    // ---------------------------------------------------------
-
     void build_vertical_screen(
         std::uint8_t *image,
         const DateTime &time,
@@ -778,6 +760,9 @@ namespace app
     {
         epaper::set_rotation(epaper::Rotation::Portrait);
         epaper::buffer_clear(image, false);
+
+        constexpr int SCREEN_WIDTH = 240;
+
 
         char date_text[32];
 
@@ -789,21 +774,18 @@ namespace app
             static_cast<unsigned>(time.day),
             month_name(time.month));
 
-        // Approximate centring:
-        // 6 pixels per character * scale 2.
-        const int date_length =
-            static_cast<int>(std::strlen(date_text));
+        const int date_length = static_cast<int>(std::strlen(date_text));
 
         const int date_width =
             date_length * 6 * 2;
 
         const int date_x =
-            (epaper::WIDTH - date_width) / 2;
+            (SCREEN_WIDTH - date_width) / 2;
 
         epaper::draw_text(
             image,
             date_x,
-            22,
+            16,
             date_text,
             2);
 
@@ -812,29 +794,20 @@ namespace app
             time.hour,
             time.minute);
 
-        draw_period(
-            image,
-            time.hour,
-            192,
-            215);
-
         epaper::draw_rect(
             image,
             16,
-            270,
+            245,
             epaper::WIDTH - 32,
             1,
             true,
             true);
 
-        // Divider
-        epaper::draw_rect(image, 16, 245, epaper::WIDTH - 32, 1, true, true);
-
         // Temperature Labels
         epaper::draw_text(
             image,
             28,
-            292,
+            255,
             "TEMP",
             2);
 
@@ -842,7 +815,7 @@ namespace app
         epaper::draw_text(
             image,
             132,
-            292,
+            255,
             "HUMIDITY",
             2);
 
@@ -852,13 +825,13 @@ namespace app
             draw_temperature_value(
                 image,
                 14,
-                282,
+                278,
                 environment.temperature_c);
 
             draw_humidity_value(
                 image,
                 145,
-                282,
+                278,
                 environment.humidity_percent);
         }
         else
@@ -866,33 +839,33 @@ namespace app
             epaper::draw_text(
                 image,
                 20,
-                287,
+                285,
                 "--.- C",
                 2);
 
             epaper::draw_text(
                 image,
                 155,
-                287,
+                285,
                 "--",
                 2);
 
             draw_percent_symbol(
                 image,
                 195,
-                285);
-
-            // Event section
-            epaper::draw_rect(image, 16, 335, epaper::WIDTH - 32, 1, true, true);
-            epaper::draw_text(image, 18, 347, "NEXT EVENT", 2);
+                283);
+        }
+        // Event section
+            epaper::draw_rect(image, 16, 330, SCREEN_WIDTH - 32, 1, true, true);
+            epaper::draw_text(image, 18, 340, "EVENT:", 2);
             if (event.valid)
             {
-                char event_name[19];
-                std::snprintf(event_name, sizeof(event_name), "%.18s", event.name.c_str());
-                epaper::draw_text(image, 18, 370, event_name, 1);
+                char event_name[17];
+                std::snprintf(event_name, sizeof(event_name), "%.16s", event.name.c_str());
+                epaper::draw_text(image, 18, 362, event_name, 2);
                 char event_details[40];
                 std::snprintf(event_details, sizeof(event_details), "%s %s", event.date.c_str(), event.time.c_str());
-                epaper::draw_text(image, 18, 392, event_details, 1);
+                epaper::draw_text(image, 18, 386, event_details, 1);
             }
             else
             {
@@ -900,10 +873,9 @@ namespace app
                     image,
                     18,
                     370,
-                    "NO UPCOMING EVENTS",
-                    1);
+                    "NO EVENTS",
+                    2);
             }
-        }
     }
 
     void build_horizontal_screen(
@@ -977,14 +949,6 @@ namespace app
             image,
             time.hour,
             time.minute);
-
-        // AM - PM
-        draw_period(
-            image,
-            time.hour,
-            235,
-            145
-        );
 
         epaper::draw_rect(
             image,
