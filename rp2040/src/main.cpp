@@ -16,6 +16,7 @@
 #include "drivers/MicroSD/MicroSD.h"
 #include "time_adjust.h"
 #include "drivers/alarm/set_alarm.h"
+#include "drivers/buzzer/buzzer.h"
 
 #include "board.h"
 #include <cstdio>
@@ -62,12 +63,7 @@ int main() {
     gpio_set_irq_enabled_with_callback(SW3, GPIO_IRQ_EDGE_RISE, true, button_callback);
 
     printf("\nButtons and alarm test\n");
-    MicroSD sd(
-        board::SD_DAT3_PIN,
-        board::SD_CLK_PIN,
-        board::SD_CMD_PIN,
-        board::SD_DAT0_PIN
-     );
+
 
     i2c_init(
        board::I2C_PORT,
@@ -87,12 +83,19 @@ int main() {
     // RTC.
     INS5699S rtc(board::I2C_PORT);
 
+    // Alarm
+    SetAlarm alarm(rtc, button_pressed_1, button_pressed_2, button_pressed_3);
+
+    // Buzzer
+    Buzzer buzzer(BUZZER);
+
     if (!rtc.initialise())
     {
        printf("ERROR: RTC initialisation failed\n");
     }
 
     constexpr bool SET_RTC_ON_BOOT = true;
+    bool alarm_on = false;
 
     if (SET_RTC_ON_BOOT)
     {
@@ -120,10 +123,6 @@ int main() {
 
     printf("All available devices initialised\n");
 
-    if (!sd.init()) {
-        printf("ERROR: SD card initialisation failed\n");
-    } 
-
     int previous_minute = -1;
 
    absolute_time_t next_environment_read = make_timeout_time_ms(30000);
@@ -138,8 +137,8 @@ int main() {
 
     if (button_pressed_3) {
         button_pressed_3 = false;
-        SetAlarm alarm(rtc, button_pressed_1, button_pressed_2, button_pressed_3);
-        alarm.run();
+        alarm.set_alarm();
+        alarm_on = true;
     }
 
     const DateTime now = rtc.read_datetime();
@@ -156,7 +155,11 @@ int main() {
             );
         }
         previous_minute = now.minute;
+    if (alarm_on) {
+        if (alarm.check_alarm() && alarm.alarm_flag == false) {
+            buzzer.alarm();
+        }
+    }
     }
 }
-
 

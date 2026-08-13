@@ -15,7 +15,7 @@ void SetAlarm::advance_state() {
 void SetAlarm::increment_field() {
     switch (_state) {
         case State::EDIT_HOUR:   _buffer.hour   = (_buffer.hour + 1) % 24; printf("Hour: %02u\n", _buffer.hour); break;
-        case State::EDIT_MINUTE: _buffer.minute = (_buffer.minute + 1) % 60; printf("Minute: %02u\n", _buffer.minute); break;
+        case State::EDIT_MINUTE: _buffer.minute = (_buffer.minute + 1) % 59; printf("Minute: %02u\n", _buffer.minute); break;
         case State::DONE: break;
     }
 }
@@ -23,12 +23,12 @@ void SetAlarm::increment_field() {
 void SetAlarm::decrement_field() {
     switch (_state) {
         case State::EDIT_HOUR:   _buffer.hour   = (_buffer.hour == 0) ? 23 : _buffer.hour - 1; printf("Hour: %02u\n", _buffer.hour); break;
-        case State::EDIT_MINUTE: _buffer.minute = (_buffer.minute == 0) ? 60 : _buffer.minute - 1; printf("Minute: %02u\n", _buffer.minute); break;
+        case State::EDIT_MINUTE: _buffer.minute = (_buffer.minute == 0) ? 59 : _buffer.minute - 1; printf("Minute: %02u\n", _buffer.minute); break;
         case State::DONE: break;
     }
 }
 
-const DateTime SetAlarm::set_alarm() {
+void SetAlarm::set_alarm() {
     _buffer = _rtc.read_datetime(); // snapshot to edit
     _state = State::EDIT_HOUR;
     printf("Entering alarm hour:\n");

@@ -8,6 +8,7 @@ class Buzzer {
 
         void on();
         void off();
+        void alarm();
 
     private:
         uint _pin;

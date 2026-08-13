@@ -6,10 +6,10 @@ public:
     // References to the ISR-set flags declared in main.cpp
     SetAlarm(INS5699S& rtc, volatile bool& btn1_flag, volatile bool& btn2_flag, volatile bool& btn3_flag);
 
-    const DateTime set_alarm();
-
+    void set_alarm();
     bool check_alarm();
 
+    bool alarm_flag;
 private:
     enum class State { EDIT_HOUR, EDIT_MINUTE, DONE };
 

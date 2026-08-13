@@ -13,3 +13,7 @@ void Buzzer::on() {
 void Buzzer::off() {
     gpio_put(_pin, 0);
 }
+
+void Buzzer::alarm() {
+    
+}
