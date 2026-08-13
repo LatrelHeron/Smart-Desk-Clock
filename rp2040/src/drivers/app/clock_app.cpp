@@ -274,8 +274,8 @@ namespace app
         const int m1 = minute / 10;
         const int m2 = minute % 10;
 
-        constexpr int REGION_X = 145;
-        constexpr int REGION_WIDTH = 271;
+        constexpr int REGION_X = 0;
+        constexpr int REGION_WIDTH = 250;
 
         constexpr int DIGIT_HEIGHT = 105;
         constexpr int THICKNESS = 7;
@@ -955,21 +955,21 @@ namespace app
 
         if (event.valid)
         {
-            char event_name[20];
+            char event_name[17];
 
-            std::snprintf(event_name, sizeof(event_name), "%.19s", event.name.c_str());
-            epaper::draw_text(image, 15, 82, event_name, 1);
-            epaper::draw_text(image, 15, 105, event.date.c_str(), 1);
-            epaper::draw_text( image, 15, 128, event.time.c_str(), 1);
+            std::snprintf(event_name, sizeof(event_name), "%.16s", event.name.c_str());
+            epaper::draw_text(image, 275, 82, event_name, 2);
+            epaper::draw_text(image, 275, 115, event.date.c_str(), 1);
+            epaper::draw_text( image, 275, 138, event.time.c_str(), 2);
         }
         else
         {
             epaper::draw_text(
                 image,
-                15,
+                275,
                 85,
                 "NO EVENTS",
-                1
+                2
             );
         }
 
@@ -981,7 +981,7 @@ namespace app
         draw_period(
             image,
             time.hour,
-            374,
+            215,
             145
         );
 
