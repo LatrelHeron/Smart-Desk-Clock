@@ -203,6 +203,13 @@ namespace epaper
         return true;
     }
 
+    static Rotation current_rotation = Rotation::Portrait;
+
+    void set_rotation(Rotation rotation)
+    {
+        current_rotation = rotation;
+    }
+
     void Epaper3in7::send_partial_region(
         uint8_t command_value,
         const uint8_t *image,
@@ -252,6 +259,7 @@ namespace epaper
                 static_cast<std::size_t>(bytes_per_row));
         }
     }
+
     void Epaper3in7::send_partial_refresh_command(
         int x,
         int y,
@@ -388,11 +396,44 @@ namespace epaper
 
     void set_pixel(uint8_t *buffer, int x, int y, bool black)
     {
-        if (buffer == nullptr || x < 0 || x >= WIDTH || y < 0 || y >= HEIGHT)
+        if (buffer == nullptr)
+        {
             return;
+        }
 
-        const std::size_t index = static_cast<std::size_t>(y) * (WIDTH / 8) + (x / 8);
-        const uint8_t mask = static_cast<uint8_t>(0x80u >> (x & 7));
+        int physical_x = x;
+        int physical_y = y;
+
+        if (current_rotation == Rotation::Portrait)
+        {
+            // Logical screen:
+            // 240 x 416
+
+            if (x < 0 || x >= WIDTH ||
+                y < 0 || y >= HEIGHT)
+            {
+                return;
+            }
+        }
+        else
+        {
+            // Logical screen:
+            // 416 x 240
+
+            if (x < 0 || x >= HEIGHT ||
+                y < 0 || y >= WIDTH)
+            {
+                return;
+            }
+
+            // Rotate clockwise into the physical
+            // 240 x 416 framebuffer.
+            physical_x = y;
+            physical_y = HEIGHT - 1 - x;
+        }
+
+        const std::size_t index = static_cast<std::size_t>(physical_y) * (WIDTH / 8) + (physical_x / 8);
+        const uint8_t mask = static_cast<uint8_t>(0x80u >> (physical_x & 7));
 
         if (black)
         {

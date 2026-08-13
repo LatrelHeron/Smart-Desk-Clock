@@ -1,0 +1,314 @@
+#include <stdio.h>
+#include <math.h>
+
+#include "pico/stdlib.h"
+#include "hardware/gpio.h"
+#include "hardware/pio.h"
+
+#include "WS2812.pio.h" //This header file gets produced during compilation from the WS2812.pio file
+
+#include "drivers/logging/logging.h"
+#include "drivers/WS2812/leds.h"
+#include "drivers/LIS3DH/lis3dh.h"
+#include "drivers/microphone/microphone.h"
+#include "drivers/epaper/epaper_3in7.h"
+#include "drivers/SEN0546/temp_sensor.h"
+#include "drivers/rtc/rtc.h"
+#include "drivers/app/clock_app.h"
+#include "drivers/MicroSD/MicroSD.h"
+
+#include "board.h"
+
+#include <cstdio>
+#include <cstdint>
+
+uint32_t framebuffer_checksum(
+    const uint8_t *image)
+{
+    uint32_t checksum = 0;
+
+    for (std::size_t i = 0;
+         i < epaper::BUFFER_SIZE;
+         ++i)
+    {
+        checksum += image[i];
+    }
+
+    return checksum;
+}
+
+int main()
+{
+    stdio_init_all();
+    sleep_ms(2000);
+
+    printf("\nSmart Desk Clock UI test\n");
+
+    // -----------------------------------------------------
+    // Shared I2C
+    // -----------------------------------------------------
+
+    i2c_init(
+        board::I2C_PORT,
+        board::I2C_BAUD_RATE);
+
+    gpio_set_function(
+        board::I2C_SDA_PIN,
+        GPIO_FUNC_I2C);
+
+    gpio_set_function(
+        board::I2C_SCL_PIN,
+        GPIO_FUNC_I2C);
+
+    gpio_pull_up(board::I2C_SDA_PIN);
+    gpio_pull_up(board::I2C_SCL_PIN);
+
+    // -----------------------------------------------------
+    // RTC
+    // -----------------------------------------------------
+
+    INS5699S rtc(board::I2C_PORT);
+
+    if (!rtc.initialise())
+    {
+        printf("ERROR: RTC initialisation failed\n");
+    }
+
+    // Keep true while you don't have RTC backup power.
+    constexpr bool SET_RTC_ON_BOOT = true;
+
+    if (SET_RTC_ON_BOOT)
+    {
+        DateTime initial_time{};
+
+        initial_time.year = 2026;
+        initial_time.month = 8;
+        initial_time.day = 9;
+        initial_time.weekday = 0x01; // Sunday
+
+        // Change these before flashing if required.
+        initial_time.hour = 21;
+        initial_time.minute = 2;
+        initial_time.second = 0;
+
+        initial_time.valid = true;
+
+        if (rtc.set_datetime(initial_time))
+        {
+            printf("RTC time set successfully\n");
+        }
+        else
+        {
+            printf("ERROR: RTC time setting failed\n");
+        }
+    }
+
+    // -----------------------------------------------------
+    // Temperature / humidity
+    // -----------------------------------------------------
+
+    SEN0546 sensor(board::I2C_PORT);
+
+    EnvironmentData latest_environment{};
+
+    if (sensor.initialise())
+    {
+        latest_environment = sensor.read();
+    }
+    else
+    {
+        printf(
+            "ERROR: Temperature sensor initialisation failed\n");
+    }
+
+    // -----------------------------------------------------
+    // Orientation input
+    // -----------------------------------------------------
+
+    gpio_init(board::ORIENTATION_PIN);
+    gpio_set_dir(board::ORIENTATION_PIN, GPIO_IN);
+    gpio_pull_down(board::ORIENTATION_PIN);
+
+    printf(
+        "Orientation input initialised on GPIO %u\n",
+        static_cast<unsigned>(board::ORIENTATION_PIN));
+
+    // -----------------------------------------------------
+    // E-paper
+    // -----------------------------------------------------
+
+    const epaper::Pins display_pins{
+        .sck = board::EPD_SCK_PIN,
+        .mosi = board::EPD_MOSI_PIN,
+        .cs = board::EPD_CS_PIN,
+        .dc = board::EPD_DC_PIN,
+        .reset = board::EPD_RST_PIN,
+        .busy = board::EPD_BUSY_PIN};
+
+    epaper::Epaper3in7 display(
+        board::EPD_SPI,
+        display_pins);
+
+    if (!display.init())
+    {
+        printf("ERROR: Display initialisation failed\n");
+
+        while (true)
+        {
+            sleep_ms(1000);
+        }
+    }
+
+    static uint8_t image[epaper::BUFFER_SIZE];
+
+    int previous_minute = -1;
+    int previous_mode = -1;
+
+    absolute_time_t next_environment_read =
+        make_timeout_time_ms(30000);
+
+    // -----------------------------------------------------
+    // Main application loop
+    // -----------------------------------------------------
+
+    while (true)
+    {
+        const DateTime now =
+            rtc.read_datetime();
+
+        const int mode =
+            gpio_get(board::ORIENTATION_PIN);
+
+        printf(
+            "GPIO%u raw state = %d | Display mode: %s\n",
+            static_cast<unsigned>(board::ORIENTATION_PIN),
+            mode,
+            mode == 1 ? "VERTICAL" : "HORIZONTAL");
+
+        // -----------------------------------------------------
+        // Environment gets sampled independently.
+        // -----------------------------------------------------
+
+        if (absolute_time_diff_us(
+                get_absolute_time(),
+                next_environment_read) <= 0)
+        {
+            const EnvironmentData reading =
+                sensor.read();
+
+            if (reading.valid)
+            {
+                latest_environment = reading;
+            }
+
+            next_environment_read =
+                make_timeout_time_ms(30000);
+        }
+
+        // -----------------------------------------------------
+        // Redraw when:
+        // 1. the minute changes
+        // 2. the display orientation changes
+        // -----------------------------------------------------
+
+        const bool minute_changed =
+            static_cast<int>(now.minute) != previous_minute;
+
+        const bool orientation_changed =
+            mode != previous_mode;
+
+        if (now.valid && orientation_changed)
+        {
+            printf("Orientation changed -> %s\n",
+                   mode == 1 ? "VERTICAL" : "HORIZONTAL");
+
+            // -----------------------------------------------------
+            // Select display layout from accelerometer mode.
+            //
+            // Mode 1 = Vertical
+            // Mode 0 = Horizontal
+            // -----------------------------------------------------
+
+            if (mode == 1)
+            {
+                app::build_vertical_screen(
+                    image,
+                    now,
+                    latest_environment);
+            }
+            else
+            {
+                app::build_horizontal_screen(
+                    image,
+                    now,
+                    latest_environment);
+            }
+
+            // -----------------------------------------------------
+            // Send completed image to e-paper display.
+            // -----------------------------------------------------
+
+            printf("Forcing orientation refresh...\n");
+
+            // Reset/reinitialise the e-paper controller.
+            if (!display.init())
+            {
+                printf("ERROR: Display reinitialisation failed\n");
+            }
+            else
+            {
+                if (display.display(image))
+                {
+                    printf(
+                        "Orientation display refresh complete\n");
+                }
+                else
+                {
+                    printf(
+                        "ERROR: Orientation refresh failed\n");
+                }
+            }
+
+            previous_mode = mode;
+
+            previous_minute = static_cast<int>(now.minute);
+        }
+        else if (now.valid && minute_changed)
+        {
+            printf(
+                "\nMinute changed -> %02u:%02u\n",
+                static_cast<unsigned>(now.hour),
+                static_cast<unsigned>(now.minute));
+
+            if (mode == 1)
+            {
+                app::build_vertical_screen(
+                    image,
+                    now,
+                    latest_environment);
+            }
+            else
+            {
+                app::build_horizontal_screen(
+                    image,
+                    now,
+                    latest_environment);
+            }
+
+            if (display.display(image))
+            {
+                printf("Minute display refresh complete\n");
+            }
+            else
+            {
+                printf("ERROR: Minute refresh failed\n");
+            }
+
+            previous_minute = static_cast<int>(now.minute);
+
+            previous_mode = mode;
+        }
+
+        sleep_ms(50);
+    }
+}
