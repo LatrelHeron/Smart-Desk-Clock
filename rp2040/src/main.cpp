@@ -23,6 +23,7 @@
 #define SW1 2
 #define SW2 3
 #define SW3 4
+#define BUZZER 10
 
 volatile bool button_pressed_1 = false;
 volatile bool button_pressed_2 = false;
@@ -39,6 +40,18 @@ void button_callback(uint pin, uint32_t events) {
 
 int main() {
     stdio_init_all();
+    gpio_init(BUZZER);
+    gpio_set_dir(BUZZER, GPIO_OUT);
+    for (;;) {
+        gpio_put(BUZZER, 1);
+        sleep_ms(1000);
+        gpio_put(BUZZER, 0);
+        sleep_ms(1000);
+    }
+}
+
+/*
+stdio_init_all();
     sleep_ms(2000);
 
     // Initialise switch 1
@@ -149,6 +162,4 @@ int main() {
         }
         previous_minute = now.minute;
     }
-}
-
-
+*/

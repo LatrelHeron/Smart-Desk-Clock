@@ -72,6 +72,8 @@ if(CrossCompiling)
         src/drivers/buttons/buttons.h
         src/time_adjust.cpp
         src/time_adjust.h
+        src/drivers/buzzer/buzzer.h
+        src/drivers/buzzer/buzzer.cpp
  
     )
     target_include_directories(smart_desk_clock
