@@ -86,23 +86,13 @@ int main()
 
     // Initialise RTC
     INS5699S rtc(board::I2C_PORT);
+    constexpr bool SET_RTC_ON_BOOT = true; // Keep true while RTC has no backup power.
 
-    // Initialise Alarm
-    SetAlarm alarm(rtc, button_pressed_1, button_pressed_2, button_pressed_3);
-
-    // Initialise Buzzer
-    Buzzer buzzer(BUZZER, button_pressed_2);
-
-    if (!rtc.initialise())
-    {
+    if (!rtc.initialise()) {
         printf("ERROR: RTC initialisation failed\n");
     }
 
-    // Keep true while RTC has no backup power.
-    constexpr bool SET_RTC_ON_BOOT = true;
-
-    if (SET_RTC_ON_BOOT)
-    {
+    if (SET_RTC_ON_BOOT) {
         DateTime initial_time{};
 
         initial_time.year = 2026;
@@ -116,18 +106,22 @@ int main()
 
         initial_time.valid = true;
 
-        if (rtc.set_datetime(initial_time))
-        {
+        if (rtc.set_datetime(initial_time)) {
             printf("RTC time set successfully\n");
-        }
-        else
-        {
+        } else { 
             printf("ERROR: RTC time setting failed\n");
         }
     }
 
-    SEN0546 sensor(board::I2C_PORT);
+    // Initialise Alarm
+    SetAlarm alarm(rtc, button_pressed_1, button_pressed_2, button_pressed_3);
+    bool alarm_on = false;
 
+    // Initialise Buzzer
+    Buzzer buzzer(BUZZER, button_pressed_2);
+
+    // Initialise temperature and humidity sensor
+    SEN0546 sensor(board::I2C_PORT);
     EnvironmentData latest_environment{};
 
     if (sensor.initialise())
@@ -139,6 +133,7 @@ int main()
         printf("ERROR: Temperature sensor initialisation failed\n");
     }
 
+    // Initialise SD card
     MicroSD sd(
         board::SD_DAT3_PIN,
         board::SD_CLK_PIN,
@@ -147,24 +142,18 @@ int main()
 
     const bool sd_ready = sd.init();
 
-    if (sd_ready)
-    {
+    if (sd_ready) {
         printf("SD card initialised successfully\n");
-    }
-    else
-    {
+    } else {
         printf("ERROR: SD card initialisation failed\n");
     }
 
     app::EventData next_event{};
 
-    if (sd_ready)
-    {
-        const std::vector<std::string> fields =
-            sd.get_next_event("events.txt");
+    if (sd_ready) {
+        const std::vector<std::string> fields = sd.get_next_event("events.txt");
 
-        if (fields.size() >= 3)
-        {
+        if (fields.size() >= 3) {
             next_event.name = fields[0];
             next_event.date = fields[1];
             next_event.time = fields[2];
@@ -172,16 +161,14 @@ int main()
         }
     }
 
+    // Initialise accelerometer for orientation
     gpio_init(board::ORIENTATION_PIN);
     gpio_set_dir(board::ORIENTATION_PIN, GPIO_IN);
     gpio_pull_down(board::ORIENTATION_PIN);
+    printf("Orientation input initialised on GPIO %u\n", static_cast<unsigned>(board::ORIENTATION_PIN));
 
-    printf(
-        "Orientation input initialised on GPIO %u\n",
-        static_cast<unsigned>(
-            board::ORIENTATION_PIN));
-
-    const epaper::Pins display_pins{
+    // Initialise display pins
+    const epaper::Pins display_pins {
         .sck = board::EPD_SCK_PIN,
         .mosi = board::EPD_MOSI_PIN,
         .cs = board::EPD_CS_PIN,
@@ -193,12 +180,9 @@ int main()
         board::EPD_SPI,
         display_pins);
 
-    if (!display.init())
-    {
+    if (!display.init()) {
         printf("ERROR: Display initialisation failed\n");
-
-        while (true)
-        {
+        while (true) {
             sleep_ms(1000);
         }
     }
@@ -210,20 +194,28 @@ int main()
 
     absolute_time_t next_environment_read = make_timeout_time_ms(30000);
 
-    while (true)
-    {
-        const DateTime now = rtc.read_datetime();
+    while (true) {
+        if (button_pressed_1) {
+        button_pressed_1 = false;
+        TimeAdjust adjuster(rtc, button_pressed_1, button_pressed_2, button_pressed_3);
+        adjuster.run();
+        }
 
-        const int mode = gpio_get(board::ORIENTATION_PIN);
+        if (button_pressed_3) {
+            button_pressed_3 = false;
+            alarm.set_alarm();
+            alarm_on = true;
+        }
 
-        if (absolute_time_diff_us(get_absolute_time(), next_environment_read) <= 0)
-        {
+        const DateTime now = rtc.read_datetime(); // get current time from RTC
+
+        const int mode = gpio_get(board::ORIENTATION_PIN); // Check clock orientation
+
+        if (absolute_time_diff_us(get_absolute_time(), next_environment_read) <= 0) {
             const EnvironmentData reading = sensor.read();
-
             if (reading.valid) {
                 latest_environment = reading;
             }
-
             next_environment_read = make_timeout_time_ms(30000);
         }
 
@@ -231,16 +223,10 @@ int main()
 
         const bool orientation_changed = mode != previous_mode;
 
-        if (now.valid && orientation_changed)
-        {
-            printf(
-                "Orientation changed -> %s\n",
-                mode == 1
-                    ? "VERTICAL"
-                    : "HORIZONTAL");
+        if (now.valid && orientation_changed) {
+            printf("Orientation changed -> %s\n", mode == 1 ? "VERTICAL" : "HORIZONTAL");
 
-            if (mode == 1)
-            {
+            if (mode == 1) {
                 app::build_vertical_screen(
                     image,
                     now,
@@ -254,40 +240,29 @@ int main()
                     next_event);
             }
 
-            if (!display.init())
-            {
+            if (!display.init()) {
                 printf("ERROR: Display reinitialisation failed\n");
-            }
-            else if (display.display(image))
-            {
+            } else if (display.display(image)) {
                 printf("Orientation display refresh complete\n");
-            }
-            else
-            {
+            } else {
                 printf("ERROR: Orientation refresh failed\n");
             }
 
             previous_mode = mode;
-
             previous_minute = static_cast<int>(now.minute);
-        }
-        else if (minute_changed)
-        {
-            printf(
-                "\nMinute changed -> %02u:%02u\n",
+
+        } else if (minute_changed) {
+            printf("\nMinute changed -> %02u:%02u\n",
                 static_cast<unsigned>(now.hour),
                 static_cast<unsigned>(now.minute));
 
-            if (mode == 1)
-            {
+            if (mode == 1) {
                 app::build_vertical_screen(
                     image,
                     now,
                     latest_environment,
                     next_event);
-            }
-            else
-            {
+            } else {
                 app::build_horizontal_screen(
                     image,
                     now,
@@ -295,22 +270,17 @@ int main()
                     next_event);
             }
 
-            if (display.display(image))
-            {
+            if (display.display(image)) {
                 printf("Minute display refresh complete\n");
-            }
-            else
-            {
+            } else {
                 printf("ERROR: Minute refresh failed\n");
             }
 
-            if (sd_ready)
-            {
+            if (sd_ready) {
                 char temperature_buffer[16];
                 char humidity_buffer[16];
 
-                if (latest_environment.valid)
-                {
+                if (latest_environment.valid) {
                     snprintf(
                         temperature_buffer,
                         sizeof(temperature_buffer),"%.1fC",
@@ -320,9 +290,7 @@ int main()
                         humidity_buffer,
                         sizeof(humidity_buffer),"%.0f%%",
                         static_cast<double>(latest_environment.humidity_percent));
-                }
-                else
-                {
+                } else {
                     snprintf(
                         temperature_buffer,
                         sizeof(temperature_buffer), "--.-C");
@@ -339,20 +307,14 @@ int main()
                     std::to_string(now.hour).c_str(),
                     std::to_string(static_cast<unsigned>(now.minute)).c_str());
 
-                printf("SD data written: %s | %s\n",
-                    temperature_buffer,
-                    humidity_buffer);
-
+                printf("SD data written: %s | %s\n", temperature_buffer, humidity_buffer);
                 std::vector<std::string>next_event =sd.get_next_event("EVENTS.txt");
 
-                // Protect against indexing an
-                // incomplete/empty event.
-                if (next_event.size() >= 3)
-                {
+                // Protect against indexing an incomplete/empty event.
+                if (next_event.size() >= 3) {
                     printf("Next event: ");
 
-                    for (size_t i = 0; i < next_event.size(); ++i)
-                    {
+                    for (size_t i = 0; i < next_event.size(); ++i) {
                         printf("%s ", next_event[i].c_str());
                     }
 
@@ -376,15 +338,12 @@ int main()
                         static_cast<unsigned>(now.hour),
                         static_cast<unsigned>(now.minute));
 
-                    if (next_event[1] == date_buffer &&
-                        next_event[2] == time_buffer)
-                    {
+                    if (next_event[1] == date_buffer && next_event[2] == time_buffer) {
                         sd.deleteLine("EVENTS.txt");
                         printf("Completed event removed from EVENTS.txt\n");
                     }
                 }
             }
-
             previous_minute = static_cast<int>(now.minute);
             previous_mode = mode;
         }
