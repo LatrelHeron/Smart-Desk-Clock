@@ -10,7 +10,7 @@ public:
     void run();
 
 private:
-    enum class State { EDIT_DAY, EDIT_MONTH, EDIT_YEAR, EDIT_HOUR, EDIT_MINUTE, EDIT_SECOND, DONE };
+    enum class State { EDIT_DAY, EDIT_MONTH, EDIT_YEAR, EDIT_HOUR, EDIT_MINUTE, DONE };
 
     INS5699S& _rtc;
     volatile bool& _btn1;
@@ -21,4 +21,5 @@ private:
 
     void advance_state();
     void increment_field();
+    void decrement_field();
 };

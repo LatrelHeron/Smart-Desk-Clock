@@ -130,7 +130,7 @@ int main() {
    {
     if (button_pressed_1) {
         button_pressed_1 = false;
-        TimeAdjust adjuster(rtc, button_pressed_1, button_pressed_2);
+        TimeAdjust adjuster(rtc, button_pressed_1, button_pressed_2, button_pressed_3);
         adjuster.run();
         }
 
