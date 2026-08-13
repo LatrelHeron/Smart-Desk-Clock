@@ -31,6 +31,19 @@
 #include <cstdio>
 #include <cstdint>
 
+volatile bool button_pressed_1 = false;
+volatile bool button_pressed_2 = false;
+volatile bool button_pressed_3 = false;
+
+// Button callback function
+void button_callback(uint pin, uint32_t events) {
+    switch (pin) {
+        case SW1: button_pressed_1 = true; break;
+        case SW2: button_pressed_2 = true; break;
+        case SW3: button_pressed_3 = true; break;
+    }
+}
+
 int main()
 {
     stdio_init_all();
