@@ -67,26 +67,16 @@ int main()
     gpio_pull_up(SW3);
     gpio_set_irq_enabled_with_callback(SW3, GPIO_IRQ_EDGE_RISE, true, button_callback);
 
-    printf("\nSmart Desk Clock\n");
-
-    i2c_init(
-        board::I2C_PORT,
-        board::I2C_BAUD_RATE);
-
-    gpio_set_function(
-        board::I2C_SDA_PIN,
-        GPIO_FUNC_I2C);
-
-    gpio_set_function(
-        board::I2C_SCL_PIN,
-        GPIO_FUNC_I2C);
-
+    // Initialise I2C bus
+    i2c_init(board::I2C_PORT, board::I2C_BAUD_RATE);
+    gpio_set_function(board::I2C_SDA_PIN, GPIO_FUNC_I2C);
+    gpio_set_function(board::I2C_SCL_PIN, GPIO_FUNC_I2C);
     gpio_pull_up(board::I2C_SDA_PIN);
     gpio_pull_up(board::I2C_SCL_PIN);
 
     // Initialise RTC
     INS5699S rtc(board::I2C_PORT);
-    constexpr bool SET_RTC_ON_BOOT = true; // Keep true while RTC has no backup power.
+    bool SET_RTC_ON_BOOT = true; // Keep true while RTC has no backup power.
 
     if (!rtc.initialise()) {
         printf("ERROR: RTC initialisation failed\n");
@@ -199,6 +189,7 @@ int main()
         button_pressed_1 = false;
         TimeAdjust adjuster(rtc, button_pressed_1, button_pressed_2, button_pressed_3);
         adjuster.run();
+        SET_RTC_ON_BOOT = false;
         }
 
         if (button_pressed_3) {
@@ -220,7 +211,6 @@ int main()
         }
 
         const bool minute_changed = now.valid && static_cast<int>(now.minute) != previous_minute;
-
         const bool orientation_changed = mode != previous_mode;
 
         if (now.valid && orientation_changed) {
@@ -291,13 +281,8 @@ int main()
                         sizeof(humidity_buffer),"%.0f%%",
                         static_cast<double>(latest_environment.humidity_percent));
                 } else {
-                    snprintf(
-                        temperature_buffer,
-                        sizeof(temperature_buffer), "--.-C");
-
-                    snprintf(
-                        humidity_buffer,
-                        sizeof(humidity_buffer), "--%%");
+                    snprintf(temperature_buffer, sizeof(temperature_buffer), "--.-C");
+                    snprintf(humidity_buffer, sizeof(humidity_buffer), "--%%");
                 }
 
                 sd.writeData(DATA_FILE, temperature_buffer, humidity_buffer,
