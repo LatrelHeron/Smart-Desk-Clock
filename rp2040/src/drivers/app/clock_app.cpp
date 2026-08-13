@@ -196,7 +196,7 @@ namespace app
         constexpr int GAP = 6;
         constexpr int COLON_WIDTH = 8;
 
-        uint8_t display_hour = hour % 12;
+        uint8_t display_hour = hour;
 
         if (display_hour == 0)
         {
@@ -262,7 +262,7 @@ namespace app
         uint8_t hour,
         uint8_t minute)
     {
-        uint8_t display_hour = hour % 12;
+        uint8_t display_hour = hour;
 
         if (display_hour == 0)
         {
@@ -948,9 +948,9 @@ namespace app
             // Left side date
             epaper::draw_text(
                 image,
-                15,
+                255,
                 52,
-                "NEXT EVENT",
+                "EVENT:",
                 2);
 
         if (event.valid)
@@ -958,15 +958,15 @@ namespace app
             char event_name[17];
 
             std::snprintf(event_name, sizeof(event_name), "%.16s", event.name.c_str());
-            epaper::draw_text(image, 275, 82, event_name, 2);
-            epaper::draw_text(image, 275, 115, event.date.c_str(), 1);
-            epaper::draw_text( image, 275, 138, event.time.c_str(), 2);
+            epaper::draw_text(image, 255, 72, event_name, 2);
+            epaper::draw_text(image, 255, 92, event.date.c_str(), 2);
+            epaper::draw_text( image, 255, 112, event.time.c_str(), 2);
         }
         else
         {
             epaper::draw_text(
                 image,
-                275,
+                255,
                 85,
                 "NO EVENTS",
                 2
@@ -978,10 +978,11 @@ namespace app
             time.hour,
             time.minute);
 
+        // AM - PM
         draw_period(
             image,
             time.hour,
-            215,
+            235,
             145
         );
 
