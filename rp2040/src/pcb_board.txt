@@ -108,6 +108,28 @@ int main()
         printf("ERROR: SD card initialisation failed\n");
     }
 
+    app::EventData next_event{};
+
+    if (sd_ready)
+    {
+        const std::vector<std::string> fields =
+            sd.get_next_event("events.txt");
+
+        if (fields.size() >= 3)
+        {
+            next_event.name =
+                fields[0];
+
+            next_event.date =
+                fields[1];
+
+            next_event.time =
+                fields[2];
+
+            next_event.valid = true;
+        }
+    }
+
     gpio_init(board::ORIENTATION_PIN);
     gpio_set_dir(
         board::ORIENTATION_PIN,
@@ -324,14 +346,16 @@ int main()
                 app::build_vertical_screen(
                     image,
                     now,
-                    latest_environment);
+                    latest_environment,
+                    next_event);
             }
             else
             {
                 app::build_horizontal_screen(
                     image,
                     now,
-                    latest_environment);
+                    latest_environment,
+                    next_event);
             }
 
             // Full reinitialisation works reliably
@@ -374,14 +398,16 @@ int main()
                 app::build_vertical_screen(
                     image,
                     now,
-                    latest_environment);
+                    latest_environment,
+                    next_event);
             }
             else
             {
                 app::build_horizontal_screen(
                     image,
                     now,
-                    latest_environment);
+                    latest_environment,
+                    next_event);
             }
 
             if (display.display(image))
