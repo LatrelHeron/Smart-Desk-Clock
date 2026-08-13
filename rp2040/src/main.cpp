@@ -14,12 +14,21 @@
 #include "drivers/rtc/rtc.h"
 #include "drivers/app/clock_app.h"
 #include "drivers/MicroSD/MicroSD.h"
+#include "time_adjust.h"
+#include "drivers/alarm/set_alarm.h"
+#include "drivers/buzzer/buzzer.h"
 
 #include "board.h"
 #include <cstdio>
 #include <cstdint>
 
+#define SW1 2
+#define SW2 3
+#define SW3 4
+#define BUZZER 10
+
 
 int main() {
-
+  
 }
+

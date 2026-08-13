@@ -25,6 +25,7 @@ namespace board
     constexpr uint EPD_BUSY_PIN = 25;
 
     // Bus for SD card.
+    inline spi_inst_t *const SD_SPI = spi1;
     constexpr uint SD_DAT3_PIN = 5;
     constexpr uint SD_CLK_PIN = 6;
     constexpr uint SD_CMD_PIN = 7;

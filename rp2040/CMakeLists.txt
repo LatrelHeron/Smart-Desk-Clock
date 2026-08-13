@@ -68,6 +68,14 @@ if(CrossCompiling)
         src/drivers/MicroSD/fatfs/diskio.cpp
         src/drivers/MicroSD/fatfs/SDCardLowLevel.h
         src/drivers/MicroSD/fatfs/SDCardLowLevel.cpp
+        src/drivers/buttons/buttons.cpp
+        src/drivers/buttons/buttons.h
+        src/time_adjust.cpp
+        src/time_adjust.h
+        src/drivers/buzzer/buzzer.h
+        src/drivers/buzzer/buzzer.cpp
+        src/drivers/alarm/set_alarm.h
+        src/drivers/alarm/set_alarm.cpp
  
     )
     target_include_directories(smart_desk_clock
@@ -135,6 +143,14 @@ else()
         src/drivers/MicroSD/fatfs/diskio.cpp
         src/drivers/MicroSD/fatfs/SDCardLowLevel.cpp
         src/drivers/MicroSD/fatfs/SDCardLowLevel.h
+        src/drivers/buttons/buttons.cpp
+        src/drivers/buttons/buttons.h
+        src/time_adjust.cpp
+        src/time_adjust.h
+        src/drivers/buzzer/buzzer.h
+        src/drivers/buzzer/buzzer.cpp
+        src/drivers/alarm/set_alarm.h
+        src/drivers/alarm/set_alarm.cpp
     )
     target_include_directories(smart_desk_clock
         PUBLIC 
