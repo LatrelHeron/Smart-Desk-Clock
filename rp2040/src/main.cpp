@@ -87,10 +87,20 @@ int main()
 
         initial_time.year = 2026;
         initial_time.month = 8;
-        initial_time.day = 13;
-        initial_time.weekday = 0x10; // Thursday
+        initial_time.day = 14;
+        initial_time.weekday = 0x20; // Friday
+        /*
+        const bool valid_weekday =
+        date_time.weekday == 0x01 ||
+        date_time.weekday == 0x02 ||
+        date_time.weekday == 0x04 ||
+        date_time.weekday == 0x08 ||
+        date_time.weekday == 0x10 ||
+        date_time.weekday == 0x20 ||
+        date_time.weekday == 0x40;
+        */
 
-        initial_time.hour = 13;
+        initial_time.hour = 11;
         initial_time.minute = 0;
         initial_time.second = 0;
 
