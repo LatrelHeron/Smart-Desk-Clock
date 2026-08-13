@@ -28,11 +28,11 @@ void TimeAdjust::increment_field() {
 
 void TimeAdjust::decrement_field() {
     switch (_state) {
-        case State::EDIT_DAY:   _buffer.day   = (_buffer.day - 1) % 31; printf("Day: %02u\n", _buffer.day); break;
-        case State::EDIT_MONTH:   _buffer.month   = ((_buffer.month - 1) % 12) + 1; printf("Month: %02u\n", _buffer.month); break;
-        case State::EDIT_YEAR:   _buffer.year   = ((_buffer.year - 1) % 99) + 2000; printf("Year: %04u\n", _buffer.year); break;
-        case State::EDIT_HOUR:   _buffer.hour   = (_buffer.hour - 1) % 24; printf("Hour: %02u\n", _buffer.hour); break;
-        case State::EDIT_MINUTE: _buffer.minute = (_buffer.minute - 1) % 60; printf("Minute: %02u\n", _buffer.minute); break;
+        case State::EDIT_DAY:    _buffer.day = (_buffer.day == 1) ? 31 : _buffer.day -1; printf("Day: %02u\n", _buffer.day); break;
+        case State::EDIT_MONTH:  _buffer.month   = (_buffer.month == 1) ? 12 : _buffer.month - 1; printf("Month: %02u\n", _buffer.month); break;
+        case State::EDIT_YEAR:   _buffer.year == 2000 ? 2099 : _buffer.year -1; printf("Year: %04u\n", _buffer.year); break;
+        case State::EDIT_HOUR:   _buffer.hour   = (_buffer.hour == 0) ? 23 : _buffer.hour - 1; printf("Hour: %02u\n", _buffer.hour); break;
+        case State::EDIT_MINUTE: _buffer.minute = (_buffer.minute == 0) ? 60 : _buffer.minute - 1; printf("Minute: %02u\n", _buffer.minute); break;
         case State::DONE: break;
     }
 }
