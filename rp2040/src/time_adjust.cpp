@@ -32,7 +32,7 @@ void TimeAdjust::decrement_field() {
         case State::EDIT_MONTH:  _buffer.month   = (_buffer.month == 1) ? 12 : _buffer.month - 1; printf("Month: %02u\n", _buffer.month); break;
         case State::EDIT_YEAR:   _buffer.year = (_buffer.year == 2000) ? 2099 : _buffer.year -1; printf("Year: %04u\n", _buffer.year); break;
         case State::EDIT_HOUR:   _buffer.hour   = (_buffer.hour == 0) ? 23 : _buffer.hour - 1; printf("Hour: %02u\n", _buffer.hour); break;
-        case State::EDIT_MINUTE: _buffer.minute = (_buffer.minute == 0) ? 60 : _buffer.minute - 1; printf("Minute: %02u\n", _buffer.minute); break;
+        case State::EDIT_MINUTE: _buffer.minute = (_buffer.minute == 0) ? 59 : _buffer.minute - 1; printf("Minute: %02u\n", _buffer.minute); break;
         case State::DONE: break;
     }
 }
@@ -49,7 +49,7 @@ void TimeAdjust::run() {
         sleep_ms(10);
     }
 
-    _buffer.second = 0;
+    _buffer.second = 55;
     if (_rtc.set_datetime(_buffer)) {
         printf("RTC updated: %02u/%02u/%04u %02u:%02u:%02u\n", _buffer.day, _buffer.month, _buffer.year, _buffer.hour, _buffer.minute, _buffer.second);
     } else {

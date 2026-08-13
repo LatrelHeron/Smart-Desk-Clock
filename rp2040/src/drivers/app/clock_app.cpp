@@ -857,7 +857,7 @@ namespace app
         }
         // Event section
             epaper::draw_rect(image, 16, 330, SCREEN_WIDTH - 32, 1, true, true);
-            epaper::draw_text(image, 18, 340, "EVENT:", 2);
+            epaper::draw_text(image, 18, 340, "NEXT EVENT:", 2);
             if (event.valid)
             {
                 char event_name[17];
@@ -922,7 +922,7 @@ namespace app
                 image,
                 255,
                 52,
-                "EVENT:",
+                "NEXT EVENT:",
                 2);
 
         if (event.valid)
