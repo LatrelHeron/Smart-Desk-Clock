@@ -10,13 +10,13 @@ public:
     void run();
 
 private:
-    enum class State { EDIT_HOUR, EDIT_MINUTE, EDIT_SECOND, DONE };
+    enum class State { EDIT_YEAR, EDIT_MONTH, EDIT_DATE, EDIT_DAY, EDIT_HOUR, EDIT_MINUTE, EDIT_SECOND, DONE };
 
     INS5699S& _rtc;
     volatile bool& _btn1;
     volatile bool& _btn2;
     DateTime _buffer{};
-    State _state = State::EDIT_HOUR;
+    State _state = State::EDIT_YEAR;
 
     void advance_state();
     void increment_field();
