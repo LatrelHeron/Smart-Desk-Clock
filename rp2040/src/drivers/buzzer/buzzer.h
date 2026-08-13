@@ -4,7 +4,7 @@
 
 class Buzzer {
     public:
-        Buzzer(uint pin);
+        Buzzer(uint pin, volatile bool& btn2_flag);
 
         void on();
         void off();
@@ -12,4 +12,5 @@ class Buzzer {
 
     private:
         uint _pin;
+        volatile bool& _btn2;
 };
