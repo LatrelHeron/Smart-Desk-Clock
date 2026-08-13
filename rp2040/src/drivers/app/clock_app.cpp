@@ -824,29 +824,29 @@ namespace app
         {
             draw_temperature_value(
                 image,
-                14,
-                278,
+                28,
+                285,
                 environment.temperature_c);
 
             draw_humidity_value(
                 image,
-                145,
-                278,
+                132,
+                285,
                 environment.humidity_percent);
         }
         else
         {
             epaper::draw_text(
                 image,
-                20,
-                285,
+                30,
+                178,
                 "--.- C",
                 2);
 
             epaper::draw_text(
                 image,
-                155,
-                285,
+                30,
+                278,
                 "--",
                 2);
 
