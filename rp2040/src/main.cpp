@@ -49,6 +49,24 @@ int main()
     stdio_init_all();
     sleep_ms(2000);
 
+    // Initialise switch 1
+    gpio_init(SW1);
+    gpio_set_dir(SW1, GPIO_IN);
+    gpio_pull_up(SW1);
+    gpio_set_irq_enabled_with_callback(SW1, GPIO_IRQ_EDGE_RISE, true, button_callback);
+
+    //Initialise switch 2
+    gpio_init(SW2);
+    gpio_set_dir(SW2, GPIO_IN);
+    gpio_pull_up(SW2);
+    gpio_set_irq_enabled_with_callback(SW2, GPIO_IRQ_EDGE_RISE, true, button_callback);
+
+    // Initialise switch 3
+    gpio_init(SW3);
+    gpio_set_dir(SW3, GPIO_IN);
+    gpio_pull_up(SW3);
+    gpio_set_irq_enabled_with_callback(SW3, GPIO_IRQ_EDGE_RISE, true, button_callback);
+
     printf("\nSmart Desk Clock\n");
 
     i2c_init(
