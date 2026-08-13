@@ -2,7 +2,7 @@
 #include <stdio.h>
 
 SetAlarm::SetAlarm(INS5699S& rtc, volatile bool& btn1_flag, volatile bool& btn2_flag, volatile bool& btn3_flag)
-    : _rtc(rtc), _btn1(btn1_flag), _btn2(btn2_flag), _btn3(btn3_flag) {}
+    : _rtc(rtc), _btn1(btn1_flag), _btn2(btn2_flag), _btn3(btn3_flag) {alarm_flag = false;}
 
 void SetAlarm::advance_state() {
     switch (_state) {
@@ -41,6 +41,7 @@ void SetAlarm::set_alarm() {
     }
 
     printf("Alarm set: %02u:%02u\n", _buffer.hour, _buffer.minute);
+    alarm_flag = false;
     _alarm_time.hour = _buffer.hour;
     _alarm_time.minute = _buffer.minute;
 }

@@ -87,7 +87,7 @@ int main() {
     SetAlarm alarm(rtc, button_pressed_1, button_pressed_2, button_pressed_3);
 
     // Buzzer
-    Buzzer buzzer(BUZZER);
+    Buzzer buzzer(BUZZER, button_pressed_2);
 
     if (!rtc.initialise())
     {
@@ -157,6 +157,8 @@ int main() {
         previous_minute = now.minute;
     if (alarm_on) {
         if (alarm.check_alarm() && alarm.alarm_flag == false) {
+            alarm.alarm_flag = true;
+            button_pressed_2 = false;
             buzzer.alarm();
         }
     }

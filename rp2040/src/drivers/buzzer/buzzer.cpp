@@ -20,7 +20,7 @@ void Buzzer::alarm() {
         sleep_ms(495);
         Buzzer::off();
         sleep_ms(495);
-        if (_btn2) {\
+        if (_btn2) {
             _btn2 = false;
             break;
         }
