@@ -14,6 +14,7 @@
 #include "drivers/rtc/rtc.h"
 #include "drivers/app/clock_app.h"
 #include "drivers/MicroSD/MicroSD.h"
+#include "time_adjust.h"
 
 #include "board.h"
 #include <cstdio>
@@ -127,11 +128,17 @@ int main() {
 
    while (true)
    {
-     const DateTime now = rtc.read_datetime();
-         if (now.valid &&
+    if (button_pressed_1) {
+        button_pressed_1 = false;
+        TimeAdjust adjuster(rtc, button_pressed_1, button_pressed_2);
+        adjuster.run();
+        }
+
+    const DateTime now = rtc.read_datetime();
+        if (now.valid &&
            static_cast<int>(now.minute) != previous_minute)
         {
-           printf(
+            printf(
                "Time: %02u:%02u  Date: %02u/%02u/%04u\n",
                static_cast<unsigned>(now.hour),
                static_cast<unsigned>(now.minute),
@@ -141,16 +148,7 @@ int main() {
             );
         }
         previous_minute = now.minute;
-        if (button_pressed_1) {
-            button_pressed_1 = false;
-            printf("Set time:\n");
-            if (button_pressed_2) {
-                printf("hour");
-            }
-            if (button_pressed_3) {
-                printf("time");
-            }
-        }
     }
 }
+
 
