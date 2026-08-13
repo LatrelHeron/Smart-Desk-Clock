@@ -346,6 +346,13 @@ int main()
             }
             previous_minute = static_cast<int>(now.minute);
             previous_mode = mode;
+            if (alarm_on) {
+                if (alarm.check_alarm() && alarm.alarm_flag == false) {
+                    alarm.alarm_flag = true;
+                    button_pressed_2 = false;
+                    buzzer.alarm();
+                }
+            }
         }
         sleep_ms(50);
     }
