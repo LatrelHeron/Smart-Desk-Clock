@@ -135,6 +135,10 @@ int main() {
         adjuster.run();
         }
 
+    if (button_pressed_3) {
+        button_pressed_3 = false;
+    }
+
     const DateTime now = rtc.read_datetime();
         if (now.valid &&
            static_cast<int>(now.minute) != previous_minute)
