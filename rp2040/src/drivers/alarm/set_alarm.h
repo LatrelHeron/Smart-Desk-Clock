@@ -4,10 +4,11 @@
 class SetAlarm {
 public:
     // References to the ISR-set flags declared in main.cpp
-    TimeAdjust(INS5699S& rtc, volatile bool& btn1_flag, volatile bool& btn2_flag, volatile bool& btn3_flag);
+    SetAlarm(INS5699S& rtc, volatile bool& btn1_flag, volatile bool& btn2_flag, volatile bool& btn3_flag);
 
-    // Blocks until the user has stepped through hour/minute/second and saved.
-    void run();
+    const DateTime set_alarm();
+
+    bool check_alarm();
 
 private:
     enum class State { EDIT_HOUR, EDIT_MINUTE, DONE };
@@ -17,6 +18,7 @@ private:
     volatile bool& _btn2;
     volatile bool& _btn3;
     DateTime _buffer{};
+    DateTime _alarm_time{};
     State _state = State::EDIT_HOUR;
 
     void advance_state();

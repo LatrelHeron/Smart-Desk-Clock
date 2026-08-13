@@ -15,6 +15,7 @@
 #include "drivers/app/clock_app.h"
 #include "drivers/MicroSD/MicroSD.h"
 #include "time_adjust.h"
+#include "drivers/alarm/set_alarm.h"
 
 #include "board.h"
 #include <cstdio>
@@ -137,6 +138,8 @@ int main() {
 
     if (button_pressed_3) {
         button_pressed_3 = false;
+        SetAlarm alarm(rtc, button_pressed_1, button_pressed_2, button_pressed_3);
+        alarm.run();
     }
 
     const DateTime now = rtc.read_datetime();

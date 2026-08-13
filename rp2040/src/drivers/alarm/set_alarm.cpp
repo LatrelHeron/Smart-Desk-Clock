@@ -6,7 +6,7 @@ SetAlarm::SetAlarm(INS5699S& rtc, volatile bool& btn1_flag, volatile bool& btn2_
 
 void SetAlarm::advance_state() {
     switch (_state) {
-        case State::EDIT_HOUR:   _state = State::EDIT_MINUTE; printf("Editing: MINUTE\n"); break;
+        case State::EDIT_HOUR:   _state = State::EDIT_MINUTE; printf("Alarm: MINUTE\n"); break;
         case State::EDIT_MINUTE: _state = State::DONE; break;
         case State::DONE: break;
     }
@@ -28,7 +28,7 @@ void SetAlarm::decrement_field() {
     }
 }
 
-void SetAlarm::run() {
+const DateTime SetAlarm::set_alarm() {
     _buffer = _rtc.read_datetime(); // snapshot to edit
     _state = State::EDIT_HOUR;
     printf("Entering alarm hour:\n");
@@ -41,4 +41,11 @@ void SetAlarm::run() {
     }
 
     printf("Alarm set: %02u:%02u\n", _buffer.hour, _buffer.minute);
+    _alarm_time.hour = _buffer.hour;
+    _alarm_time.minute = _buffer.minute;
+}
+
+bool SetAlarm::check_alarm() {
+    _buffer = _rtc.read_datetime();
+    return (_buffer.hour == _alarm_time.hour && _buffer.minute == _alarm_time.minute);
 }
