@@ -12,6 +12,7 @@
 #include "pico/stdlib.h"
 #include "hardware/gpio.h"
 #include "hardware/pio.h"
+#include <string.h>
 
 #include "WS2812.pio.h"
 #include "drivers/logging/logging.h"
@@ -88,7 +89,7 @@ int main()
         initial_time.year = 2026;
         initial_time.month = 8;
         initial_time.day = 13;
-        initial_time.weekday = 0x10; // Thursday
+        initial_time.weekday = 0x20; // Thursday
 
         initial_time.hour = 13;
         initial_time.minute = 0;
@@ -185,11 +186,33 @@ int main()
     absolute_time_t next_environment_read = make_timeout_time_ms(30000);
 
     while (true) {
+        const int mode = gpio_get(board::ORIENTATION_PIN); // Check clock orientation
+        
         if (button_pressed_1) {
         button_pressed_1 = false;
+        
+        // Show a "TIME CHANGE" message on screen while adjusting
+        epaper::set_rotation(mode == 1 ? epaper::Rotation::Portrait : epaper::Rotation::Landscape);
+        epaper::buffer_clear(image, false);
+
+        const char *msg = "TIME CHANGE";
+        const int msg_length = static_cast<int>(strlen(msg));
+        constexpr int SCALE = 3;
+        const int msg_width = msg_length * 6 * SCALE;
+
+        const int screen_width = (mode == 1) ? 240 : 416;
+        const int msg_x = (screen_width - msg_width) / 2;
+
+        epaper::draw_text(image, msg_x, 150, msg, SCALE);
+        display.display(image);
+
         TimeAdjust adjuster(rtc, button_pressed_1, button_pressed_2, button_pressed_3);
         adjuster.run();
         SET_RTC_ON_BOOT = false;
+
+        // Draw screen after time change
+        previous_minute = -1;
+        previous_mode = -1;
         }
 
         if (button_pressed_3) {
@@ -200,7 +223,7 @@ int main()
 
         const DateTime now = rtc.read_datetime(); // get current time from RTC
 
-        const int mode = gpio_get(board::ORIENTATION_PIN); // Check clock orientation
+        
 
         if (absolute_time_diff_us(get_absolute_time(), next_environment_read) <= 0) {
             const EnvironmentData reading = sensor.read();
