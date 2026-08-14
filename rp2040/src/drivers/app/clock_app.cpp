@@ -865,7 +865,7 @@ namespace app
                 epaper::draw_text(image, 18, 362, event_name, 2);
                 char event_details[40];
                 std::snprintf(event_details, sizeof(event_details), "%s %s", event.date.c_str(), event.time.c_str());
-                epaper::draw_text(image, 18, 386, event_details, 1);
+                epaper::draw_text(image, 18, 386, event_details, 2);
             }
             else
             {
