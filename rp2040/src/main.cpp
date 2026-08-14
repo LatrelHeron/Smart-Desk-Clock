@@ -199,36 +199,52 @@ int main()
         const int mode = gpio_get(board::ORIENTATION_PIN); // Check clock orientation
         
         if (button_pressed_1) {
-        button_pressed_1 = false;
-        
-        // Show a "TIME CHANGE" message on screen while adjusting
-        epaper::set_rotation(mode == 1 ? epaper::Rotation::Portrait : epaper::Rotation::Landscape);
-        epaper::buffer_clear(image, false);
+            button_pressed_1 = false;
+            
+            // Show a "TIME CHANGE" message on screen while adjusting
+            epaper::set_rotation(mode == 1 ? epaper::Rotation::Portrait : epaper::Rotation::Landscape);
+            epaper::buffer_clear(image, false);
 
-        const char *msg = "TIME CHANGE";
-        const int msg_length = static_cast<int>(strlen(msg));
-        constexpr int SCALE = 3;
-        const int msg_width = msg_length * 6 * SCALE;
+            const char *msg = "TIME CHANGE";
+            const int msg_length = static_cast<int>(strlen(msg));
+            constexpr int SCALE = 3;
+            const int msg_width = msg_length * 6 * SCALE;
 
-        const int screen_width = (mode == 1) ? 240 : 416;
-        const int msg_x = (screen_width - msg_width) / 2;
+            const int screen_width = (mode == 1) ? 240 : 416;
+            const int msg_x = (screen_width - msg_width) / 2;
 
-        epaper::draw_text(image, msg_x, 150, msg, SCALE);
-        display.display(image);
+            epaper::draw_text(image, msg_x, 150, msg, SCALE);
+            display.display(image);
 
-        TimeAdjust adjuster(rtc, button_pressed_1, button_pressed_2, button_pressed_3);
-        adjuster.run();
-        SET_RTC_ON_BOOT = false;
+            TimeAdjust adjuster(rtc, button_pressed_1, button_pressed_2, button_pressed_3);
+            adjuster.run();
+            SET_RTC_ON_BOOT = false;
 
-        // Draw screen after time change
-        previous_minute = -1;
-        previous_mode = -1;
+            // Draw screen after time change
+            previous_mode = -1;
         }
 
         if (button_pressed_3) {
             button_pressed_3 = false;
+            // Show a "SET ALARM" message on screen while adjusting
+            epaper::set_rotation(mode == 1 ? epaper::Rotation::Portrait : epaper::Rotation::Landscape);
+            epaper::buffer_clear(image, false);
+
+            const char *msg = "SET ALARM";
+            const int msg_length = static_cast<int>(strlen(msg));
+            constexpr int SCALE = 3;
+            const int msg_width = msg_length * 6 * SCALE;
+
+            const int screen_width = (mode == 1) ? 240 : 416;
+            const int msg_x = (screen_width - msg_width) / 2;
+
+            epaper::draw_text(image, msg_x, 150, msg, SCALE);
+            display.display(image);
             alarm.set_alarm();
             alarm_on = true;
+            
+            // Draw screen after alarm set
+            previous_mode = -1;
         }
 
         const DateTime now = rtc.read_datetime(); // get current time from RTC

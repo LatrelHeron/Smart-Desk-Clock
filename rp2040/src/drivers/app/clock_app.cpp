@@ -459,7 +459,7 @@ namespace app
             true,
             true);
 
-        x += 10;
+        x += 5;
 
         // Smaller decimal digit.
         draw_digit(
@@ -476,8 +476,8 @@ namespace app
         // Degree symbol.
         epaper::draw_rect(
             image,
-            x,
-            y + 4,
+            x - 5,
+            y + 10,
             7,
             7,
             true,
@@ -486,8 +486,8 @@ namespace app
         // C unit.
         epaper::draw_text(
             image,
-            x + 11,
-            y + 5,
+            x + 6,
+            y + 10,
             "C",
             2);
     }
