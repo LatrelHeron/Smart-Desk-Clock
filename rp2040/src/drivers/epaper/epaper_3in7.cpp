@@ -178,6 +178,11 @@ namespace epaper
         if (image == nullptr)
             return false;
 
+        if (!wait_while_busy())
+        {
+        return false; // panel never went idle
+        }
+
         // The controller expects previous image RAM followed by new image RAM.
         static uint8_t previous[BUFFER_SIZE];
         static bool previous_valid = false;
