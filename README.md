@@ -1,5 +1,12 @@
 # Smart Desk Clock
 
+<p align="center">
+  <img src="images/set_up_2.png"
+       alt="Setup"
+       >
+</p>
+
+
 An RP2040-based embedded desk clock integrating accurate timekeeping, environmental monitoring, event storage, alarms and an orientation-responsive e-paper interface.
 
 This project was developed in 2026 by a three-person James Cook University engineering team. The final prototype combined a custom PCB with external peripherals and modular device drivers.
@@ -29,6 +36,19 @@ The Smart Desk Clock uses the RP2040 as its main controller. Independent hardwar
 
 The prototype was designed around manufacturing and cost constraints. Battery power management and hazardous-gas sensing were removed from the final PCB after a design review, while expansion headers were introduced to preserve support for external peripherals without increasing manufacturing cost.
 
+<p align="center">
+  <img src="images/set_up_vert.png"
+       alt="Schmatic main page"
+       width="48%"
+       height=400>
+  <img src="images/set_up_2.png"
+       alt="Schmatic sesnor page"
+       width="48%"
+       height=400>
+</p>
+<p align="center">
+  <em>Set up of the final smart desck clock.</em>
+</p>
 ## Hardware
 
 | Component                           | Purpose                                                      |
@@ -64,6 +84,19 @@ The e-paper interface combines information from the RTC, environmental sensor an
 An accelerometer on an external RP2040 development board determines the physical orientation of the clock. The development board sends a binary orientation state to the main PCB through GPIO. The main application then selects either the horizontal or vertical display layout and refreshes the screen when the orientation changes.
 
 This approach provided orientation-aware functionality without requiring another custom-PCB revision.
+
+<p align="center">
+  <img src="images/vert_evo.png"
+       alt="Vertical screen evo">
+</p>
+<p align="center">
+  <img src="images/hori_evolution.png"
+       alt="Horizontal screen evo">
+</p>
+<p align="center">
+  <em>Evolution from intial to final design for vertical and horizontal screen displays.</em>
+</p>
+
 
 ## Event Storage and Environmental Logging
 
@@ -107,6 +140,24 @@ The design process included:
 
 The initial design exceeded the available manufacturing budget. Battery-management and air-quality circuitry were therefore removed, and external expansion connections were used to reduce cost while retaining future expandability.
 
+<p align="center">
+  <img src="images/sch_rp2040.png"
+       alt="Schmatic main page"
+       width="48%">
+  <img src="images/sch_sensors.png"
+       alt="Schmatic sesnor page"
+       width="48%">
+</p>
+<p align="center">
+  <em>KiCad schamtic pages.</em>
+</p>
+<p align="center">
+  <img src="images/pcb_editor.png"
+       alt="PCB editor">
+</p>
+<p align="center">
+  <em>KiCad PCB editor layout.</em>
+</p>
 ## Testing and Debugging
 
 Subsystem development began on RP2040 development boards while the manufactured PCB was delayed in transit. This allowed the RTC, sensor, display and MicroSD functionality to be tested independently before final integration.
