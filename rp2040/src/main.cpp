@@ -388,6 +388,6 @@ int main()
                 }
             }
         }
-        sleep_ms(25);
+        sleep_ms(10);
     }
 }
